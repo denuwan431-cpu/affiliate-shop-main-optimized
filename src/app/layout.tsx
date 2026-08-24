@@ -13,6 +13,14 @@ export const metadata: Metadata = {
   openGraph: { type: 'website', siteName: 'AffiliateShop.lk' },
 };
 
+// The layout now fetches from the DB (categories/settings for Header/Footer).
+// A couple of routes (/affiliate-disclosure, /admin/login) have no dynamic
+// export of their own, so Next would otherwise try to statically prerender
+// them — and this shared layout — at BUILD time, hitting the DB during the
+// Vercel build. Same reason page.tsx/admin/layout.tsx/sitemap.ts already
+// force dynamic rendering: keep this layout request-time only too.
+export const dynamic = "force-dynamic";
+
 import { Suspense } from "react";
 
 import PageTransition from "@/components/PageTransition";
