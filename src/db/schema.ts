@@ -5,6 +5,7 @@ export const categories = pgTable('categories', {
   id: serial('id').primaryKey(),
   name: varchar('name', { length: 100 }).notNull(),
   slug: varchar('slug', { length: 100 }).notNull().unique(),
+  icon: text('icon'),
   isEnabled: boolean('is_enabled').default(true),
   order: integer('order').default(0),
 });
