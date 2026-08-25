@@ -22,11 +22,12 @@ export const products = pgTable('products', {
   discountPercent: integer('discount_percent'),
   imageUrls: jsonb('image_urls').$type<string[]>().notNull(),
   categoryId: integer('category_id').references(() => categories.id, { onDelete: 'set null' }),
+  brand: varchar('brand', { length: 100 }), // නැවත එකතු කරන ලදී
   rating: decimal('rating', { precision: 2, scale: 1 }).default('5.0'),
   affiliateUrl: text('affiliate_url').notNull(),
   isHot: boolean('is_hot').default(false),
   isFeatured: boolean('is_featured').default(false),
-  isNew: boolean('is_new').default(false), // අනාගතයේදී පාවිච්චි කිරීමට එකතු කරන ලදී
+  isNew: boolean('is_new').default(false),
   createdAt: timestamp('created_at').defaultNow(),
 });
 
@@ -50,13 +51,13 @@ export const users = pgTable('users', {
   createdAt: timestamp('created_at').defaultNow(),
 });
 
-// 5. Click Logs Table (Analytics)
+// 5. Click Logs Table
 export const clickLogs = pgTable('click_logs', {
   id: serial('id').primaryKey(),
   productId: integer('product_id').references(() => products.id, { onDelete: 'cascade' }),
   clickedAt: timestamp('clicked_at').defaultNow(),
-  userAgent: text('user_agent'), // නිවැරදි කරන ලදී
-  ip: varchar('ip', { length: 45 }), // නිවැරදි කරන ලදී
+  userAgent: text('user_agent'),
+  ip: varchar('ip', { length: 45 }),
 });
 
 // 6. Settings Table
@@ -66,23 +67,12 @@ export const settings = pgTable('settings', {
   value: text('value').notNull(),
 });
 
-// --- Relations Section ---
-
-export const categoriesRelations = relations(categories, ({ many }) => ({
-  products: many(products),
+// --- Relations ---
+export const categoriesRelations = relations(categories, ({ many }) => ({ products: many(products) }));
+export const productsRelations = relations(products, ({ one, many }) => ({ 
+  category: one(categories, { fields: [products.categoryId], references: [categories.id] }),
+  clicks: many(clickLogs)
 }));
-
-export const productsRelations = relations(products, ({ one, many }) => ({
-  category: one(categories, {
-    fields: [products.categoryId],
-    references: [categories.id],
-  }),
-  clicks: many(clickLogs),
-}));
-
 export const clickLogsRelations = relations(clickLogs, ({ one }) => ({
-  product: one(products, {
-    fields: [clickLogs.productId],
-    references: [products.id],
-  }),
+  product: one(products, { fields: [clickLogs.productId], references: [products.id] }),
 }));
