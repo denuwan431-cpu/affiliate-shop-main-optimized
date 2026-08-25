@@ -1,49 +1,48 @@
 "use client";
 import React from 'react';
-import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Search, Filter } from 'lucide-react';
+import { Search, ListFilter, LayoutGrid } from 'lucide-react';
+import Link from 'next/link';
 
 export default function HomeFilters({ categories }: { categories: any[] }) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  
   const selectedCat = searchParams.get('category') || 'all';
   const searchQuery = searchParams.get('q') || '';
   const sortOrder = searchParams.get('sort') || 'newest';
 
-  const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const formData = new FormData(e.currentTarget);
-    const q = formData.get('q');
-    router.push(`/?q=${q}${selectedCat !== 'all' ? `&category=${selectedCat}` : ''}&sort=${sortOrder}`);
-  };
-
-  const handleSort = (val: string) => {
-    router.push(`/?sort=${val}${selectedCat !== 'all' ? `&category=${selectedCat}` : ''}${searchQuery ? `&q=${searchQuery}` : ''}`);
+  const updateFilters = (key: string, value: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (value) params.set(key, value); else params.delete(key);
+    router.push(`/?${params.toString()}`);
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col md:flex-row gap-4 justify-between items-center mb-8">
-        <form onSubmit={handleSearch} className="relative w-full md:w-96">
-          <Search className="absolute left-4 top-3 text-gray-400" size={20} />
+    <div className="space-y-8 mb-12">
+      <div className="flex flex-col lg:flex-row gap-6 justify-between items-center">
+        {/* Search Bar */}
+        <div className="relative w-full lg:w-[450px] group">
+          <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-orange-500 transition-colors" size={20} />
           <input 
-            name="q" 
+            onChange={(e) => updateFilters('q', e.target.value)}
             defaultValue={searchQuery}
-            placeholder="Search deals..." 
-            className="w-full pl-12 pr-4 py-3 rounded-2xl border-none bg-white shadow-sm focus:ring-2 focus:ring-blue-500 outline-none"
+            placeholder="Search for products, brands..." 
+            className="w-full pl-14 pr-6 py-4 rounded-[22px] bg-white border border-gray-100 shadow-sm outline-none focus:ring-4 focus:ring-orange-500/5 focus:border-orange-500/30 transition-all text-sm font-medium"
           />
-        </form>
+        </div>
 
-        <div className="flex items-center gap-3 w-full md:w-auto">
-          <Filter size={20} className="text-gray-400" />
+        {/* Improved Sorting Menu */}
+        <div className="flex items-center gap-3 w-full lg:w-auto bg-white p-1.5 rounded-[22px] border border-gray-100 shadow-sm">
+          <div className="flex items-center gap-2 px-4 py-2 text-gray-400 border-r border-gray-50">
+            <ListFilter size={18} />
+            <span className="text-[10px] font-black uppercase tracking-widest">Sort By</span>
+          </div>
           <select 
-            onChange={(e) => handleSort(e.target.value)}
+            onChange={(e) => updateFilters('sort', e.target.value)}
             value={sortOrder}
-            className="w-full md:w-48 p-3 rounded-2xl bg-white border-none shadow-sm outline-none text-sm font-bold text-gray-700"
+            className="flex-1 lg:w-48 bg-transparent border-none outline-none text-sm font-bold text-gray-700 cursor-pointer pr-4"
           >
-            <option value="newest">Newest First</option>
+            <option value="newest">Latest Arrivals</option>
             <option value="price_low">Price: Low to High</option>
             <option value="price_high">Price: High to Low</option>
             <option value="rating">Top Rated</option>
@@ -51,18 +50,19 @@ export default function HomeFilters({ categories }: { categories: any[] }) {
         </div>
       </div>
 
-      <div className="flex gap-3 overflow-x-auto pb-4 no-scrollbar">
+      {/* Category Navigation */}
+      <div className="flex items-center gap-2 overflow-x-auto pb-2 no-scrollbar">
         <Link 
           href="/" 
-          className={`px-6 py-2.5 rounded-full font-bold text-sm transition-all border shadow-sm ${selectedCat === 'all' ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-600 border-gray-100'}`}
+          className={`flex items-center gap-2 px-7 py-3 rounded-full text-xs font-black uppercase tracking-widest transition-all border ${selectedCat === 'all' ? 'bg-gray-900 text-white border-gray-900 shadow-xl shadow-gray-200' : 'bg-white text-gray-500 border-gray-100 hover:border-orange-200'}`}
         >
-          All
+          <LayoutGrid size={14} /> All
         </Link>
         {categories.map(cat => (
           <Link 
             key={cat.id} 
-            href={`/?category=${cat.slug}${searchQuery ? `&q=${searchQuery}` : ''}&sort=${sortOrder}`}
-            className={`px-6 py-2.5 rounded-full font-bold text-sm whitespace-nowrap transition-all border shadow-sm ${selectedCat === cat.slug ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-600 border-gray-100'}`}
+            href={`/?category=${cat.slug}`}
+            className={`px-7 py-3 rounded-full text-xs font-black uppercase tracking-widest whitespace-nowrap transition-all border ${selectedCat === cat.slug ? 'bg-orange-600 text-white border-orange-600 shadow-xl shadow-orange-100' : 'bg-white text-gray-500 border-gray-100 hover:border-orange-200'}`}
           >
             {cat.name}
           </Link>
