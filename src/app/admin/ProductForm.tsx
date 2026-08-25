@@ -8,7 +8,7 @@ export default function ProductForm({ categories, initialData }: { categories: a
   const router = useRouter();
   const [formData, setFormData] = useState({
     name: initialData?.name || '',
-    shortName: initialData?.shortName || '', // Requirement 2
+    shortName: initialData?.shortName || '',
     description: initialData?.description || '',
     price: initialData?.price || '',
     originalPrice: initialData?.originalPrice || '',
@@ -18,9 +18,9 @@ export default function ProductForm({ categories, initialData }: { categories: a
     brand: initialData?.brand || '',
     affiliateUrl: initialData?.affiliateUrl || '',
     isFlashSale: initialData?.isFlashSale || false,
-    isFeatured: initialData?.isFeatured || false, // Requirement 6
-    isHot: initialData?.isHot || false,           // Requirement 6
-    isNew: initialData?.isNew || false,           // Requirement 6
+    isHot: initialData?.isHot || false,
+    isFeatured: initialData?.isFeatured || false,
+    isNew: initialData?.isNew || false,
     rating: initialData?.rating || '4.5',
   });
 
@@ -35,11 +35,9 @@ export default function ProductForm({ categories, initialData }: { categories: a
       categoryId: parseInt(formData.categoryId.toString()),
     };
 
-    if (initialData) {
-      await updateProduct(initialData.id, data);
-    } else {
-      await addProduct(data);
-    }
+    if (initialData) await updateProduct(initialData.id, data);
+    else await addProduct(data);
+    
     router.push('/admin');
     router.refresh();
   };
@@ -49,13 +47,13 @@ export default function ProductForm({ categories, initialData }: { categories: a
       <h2 className="text-2xl font-black text-gray-800">{initialData ? 'Edit Product' : 'Add New Product'}</h2>
       
       <div className="space-y-2">
-        <label className="text-sm font-bold text-gray-700">Full Product Name (Original)</label>
+        <label className="text-sm font-bold text-gray-700">Original Full Name</label>
         <input required className="w-full p-3 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-orange-500" value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} />
       </div>
 
       <div className="space-y-2">
-        <label className="text-sm font-bold text-gray-700">Short Display Name (For Homepage)</label>
-        <input className="w-full p-3 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-orange-500" value={formData.shortName} onChange={(e) => setFormData({...formData, shortName: e.target.value})} placeholder="e.g. Samsung S23 Ultra" />
+        <label className="text-sm font-bold text-gray-700">Short Display Name (Recommended)</label>
+        <input className="w-full p-3 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-orange-500" value={formData.shortName} onChange={(e) => setFormData({...formData, shortName: e.target.value})} placeholder="e.g. iPhone 15 Pro Max" />
       </div>
 
       <div className="grid grid-cols-2 gap-4">
@@ -69,17 +67,11 @@ export default function ProductForm({ categories, initialData }: { categories: a
         </div>
       </div>
 
-      <div className="space-y-2 text-sm font-bold text-gray-700">Featured Labels</div>
+      <div className="space-y-2 text-sm font-bold text-gray-700 uppercase tracking-tighter">Product Status Tags</div>
       <div className="flex flex-wrap gap-4 p-4 bg-gray-50 rounded-2xl border border-gray-100">
-        <label className="flex items-center gap-2 cursor-pointer">
-          <input type="checkbox" checked={formData.isFeatured} onChange={(e) => setFormData({...formData, isFeatured: e.target.checked})} className="w-5 h-5 accent-orange-500" /> Featured
-        </label>
-        <label className="flex items-center gap-2 cursor-pointer">
-          <input type="checkbox" checked={formData.isHot} onChange={(e) => setFormData({...formData, isHot: e.target.checked})} className="w-5 h-5 accent-orange-500" /> 🔥 Hot Deal
-        </label>
-        <label className="flex items-center gap-2 cursor-pointer">
-          <input type="checkbox" checked={formData.isNew} onChange={(e) => setFormData({...formData, isNew: e.target.checked})} className="w-5 h-5 accent-orange-500" /> New arrival
-        </label>
+        <label className="flex items-center gap-2 cursor-pointer"><input type="checkbox" checked={formData.isFeatured} onChange={(e) => setFormData({...formData, isFeatured: e.target.checked})} /> Featured</label>
+        <label className="flex items-center gap-2 cursor-pointer"><input type="checkbox" checked={formData.isHot} onChange={(e) => setFormData({...formData, isHot: e.target.checked})} /> 🔥 Hot Deal</label>
+        <label className="flex items-center gap-2 cursor-pointer"><input type="checkbox" checked={formData.isNew} onChange={(e) => setFormData({...formData, isNew: e.target.checked})} /> New Arrival</label>
       </div>
 
       <div className="space-y-2">
@@ -90,15 +82,16 @@ export default function ProductForm({ categories, initialData }: { categories: a
       </div>
 
       <div className="space-y-2">
-        <label className="text-sm font-bold text-gray-700">Daraz / Affiliate URL</label>
+        <label className="text-sm font-bold text-gray-700">Affiliate / Daraz URL</label>
         <input required className="w-full p-3 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-orange-500" value={formData.affiliateUrl} onChange={(e) => setFormData({...formData, affiliateUrl: e.target.value})} />
       </div>
 
-      <div className="pt-4 flex gap-4">
-        <button type="submit" className="flex-1 bg-orange-500 text-white py-4 rounded-2xl font-bold shadow-lg shadow-orange-100 transition hover:scale-[1.02]">
-          {initialData ? 'Update Details' : 'Save Product'}
-        </button>
+      <div className="space-y-2">
+        <label className="text-sm font-bold text-gray-700">Image URLs (Comma separated)</label>
+        <textarea required className="w-full p-3 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-orange-500 h-24" value={formData.imageUrls} onChange={(e) => setFormData({...formData, imageUrls: e.target.value})} />
       </div>
+
+      <button type="submit" className="w-full bg-orange-600 text-white py-4 rounded-2xl font-bold shadow-xl transition hover:scale-[1.01]">Save Product</button>
     </form>
   );
 }
