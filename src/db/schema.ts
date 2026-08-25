@@ -1,4 +1,4 @@
-import { pgTable, serial, text, varchar, timestamp, decimal, boolean, integer, jsonb, index } from 'drizzle-orm/pg-core';
+import { pgTable, serial, text, varchar, timestamp, decimal, boolean, integer, jsonb } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 
 export const categories = pgTable('categories', {
@@ -26,8 +26,6 @@ export const products = pgTable('products', {
   isHot: boolean('is_hot').default(false),
   isFeatured: boolean('is_featured').default(false),
   isFlashSale: boolean('is_flash_sale').default(false),
-  isNew: boolean('is_new').default(false),
-  stockStatus: varchar('stock_status', { length: 50 }).default('in_stock'),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
 });
@@ -64,21 +62,11 @@ export const settings = pgTable('settings', {
   value: text('value').notNull(),
 });
 
-export const categoriesRelations = relations(categories, ({ many }) => ({
-  products: many(products),
+export const categoriesRelations = relations(categories, ({ many }) => ({ products: many(products) }));
+export const productsRelations = relations(products, ({ one, many }) => ({ 
+  category: one(categories, { fields: [products.categoryId], references: [categories.id] }),
+  clicks: many(clickLogs)
 }));
-
-export const productsRelations = relations(products, ({ one, many }) => ({
-  category: one(categories, {
-    fields: [products.categoryId],
-    references: [categories.id],
-  }),
-  clicks: many(clickLogs),
-}));
-
 export const clickLogsRelations = relations(clickLogs, ({ one }) => ({
-  product: one(products, {
-    fields: [clickLogs.productId],
-    references: [products.id],
-  }),
+  product: one(products, { fields: [clickLogs.productId], references: [products.id] }),
 }));
