@@ -45,10 +45,13 @@ export const users = pgTable('users', {
   createdAt: timestamp('created_at').defaultNow(),
 });
 
+// --- FIXED: Added userAgent and ip columns ---
 export const clickLogs = pgTable('click_logs', {
   id: serial('id').primaryKey(),
   productId: integer('product_id').references(() => products.id, { onDelete: 'cascade' }),
   clickedAt: timestamp('clicked_at').defaultNow(),
+  userAgent: text('user_agent'), // එකතු කරන ලදී
+  ip: varchar('ip', { length: 45 }), // එකතු කරන ලදී
 });
 
 export const settings = pgTable('settings', {
@@ -58,4 +61,10 @@ export const settings = pgTable('settings', {
 });
 
 export const categoriesRelations = relations(categories, ({ many }) => ({ products: many(products) }));
-export const productsRelations = relations(products, ({ one }) => ({ category: one(categories, { fields: [products.categoryId], references: [categories.id] }) }));
+export const productsRelations = relations(products, ({ one, many }) => ({ 
+  category: one(categories, { fields: [products.categoryId], references: [categories.id] }),
+  clicks: many(clickLogs)
+}));
+export const clickLogsRelations = relations(clickLogs, ({ one }) => ({
+  product: one(products, { fields: [clickLogs.productId], references: [products.id] }),
+}));
