@@ -1,7 +1,7 @@
 import { pgTable, serial, text, varchar, timestamp, decimal, boolean, integer, jsonb, index } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 
-// 1. Categories
+// 1. Categories Table (ප්‍රවර්ග කළමනාකරණය සඳහා)
 export const categories = pgTable('categories', {
   id: serial('id').primaryKey(),
   name: varchar('name', { length: 100 }).notNull(),
@@ -12,24 +12,24 @@ export const categories = pgTable('categories', {
   createdAt: timestamp('created_at').defaultNow(),
 });
 
-// 2. Products
+// 2. Products Table (අලුත් ShortName සහ Featured Tags සමඟ)
 export const products = pgTable('products', {
   id: serial('id').primaryKey(),
   name: varchar('name', { length: 255 }).notNull(),
-  shortName: varchar('short_name', { length: 100 }), // Requirement 2
+  shortName: varchar('short_name', { length: 100 }), // Homepage එකේ පෙන්වන කෙටි නම
   description: text('description'),
   price: decimal('price', { precision: 10, scale: 2 }).notNull(),
   originalPrice: decimal('original_price', { precision: 10, scale: 2 }),
   discountPercent: integer('discount_percent'),
   imageUrls: jsonb('image_urls').$type<string[]>().notNull(),
-  categoryId: integer('category_id').references(() => categories.id),
+  categoryId: integer('category_id').references(() => categories.id, { onDelete: 'set null' }),
   brand: varchar('brand', { length: 100 }),
   rating: decimal('rating', { precision: 2, scale: 1 }).default('0.0'),
   affiliateUrl: text('affiliate_url').notNull(),
   isFlashSale: boolean('is_flash_sale').default(false),
-  isFeatured: boolean('is_featured').default(false), // Requirement 6
-  isHot: boolean('is_hot').default(false),           // Requirement 6
-  isNew: boolean('is_new').default(false),           // Requirement 6
+  isFeatured: boolean('is_featured').default(false), 
+  isHot: boolean('is_hot').default(false),           
+  isNew: boolean('is_new').default(false),           
   stockStatus: varchar('stock_status', { length: 50 }).default('in_stock'),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
@@ -38,7 +38,7 @@ export const products = pgTable('products', {
   index('idx_products_created_at').on(table.createdAt),
 ]);
 
-// 3. Banners
+// 3. Banners Table (Homepage Hero Banner Manager සඳහා)
 export const banners = pgTable('banners', {
   id: serial('id').primaryKey(),
   imageUrl: text('image_url').notNull(),
@@ -50,7 +50,7 @@ export const banners = pgTable('banners', {
   isEnabled: boolean('is_enabled').default(true),
 });
 
-// 4. Users
+// 4. Users Table (Admin Panel එකේ බැලීමට)
 export const users = pgTable('users', {
   id: serial('id').primaryKey(),
   email: varchar('email', { length: 255 }).unique().notNull(),
@@ -58,13 +58,25 @@ export const users = pgTable('users', {
   createdAt: timestamp('created_at').defaultNow(),
 });
 
-// 5. Analytics
+// 5. Click Logs Table (Analytics සඳහා)
 export const clickLogs = pgTable('click_logs', {
   id: serial('id').primaryKey(),
   productId: integer('product_id').references(() => products.id, { onDelete: 'cascade' }),
   clickedAt: timestamp('clicked_at').defaultNow(),
+  userAgent: text('user_agent'),
+  ip: varchar('ip', { length: 45 }),
+}, (table) => [
+  index('idx_click_logs_product_id').on(table.productId),
+]);
+
+// 6. Settings Table (Social Media links සහ වෙනත් settings සඳහා)
+export const settings = pgTable('settings', {
+  id: serial('id').primaryKey(),
+  key: varchar('key', { length: 100 }).notNull().unique(),
+  value: text('value').notNull(),
 });
 
+// --- Relations Section ---
 export const categoriesRelations = relations(categories, ({ many }) => ({
   products: many(products),
 }));
@@ -72,4 +84,8 @@ export const categoriesRelations = relations(categories, ({ many }) => ({
 export const productsRelations = relations(products, ({ one, many }) => ({
   category: one(categories, { fields: [products.categoryId], references: [categories.id] }),
   clicks: many(clickLogs),
+}));
+
+export const clickLogsRelations = relations(clickLogs, ({ one }) => ({
+  product: one(products, { fields: [clickLogs.productId], references: [products.id] }),
 }));
