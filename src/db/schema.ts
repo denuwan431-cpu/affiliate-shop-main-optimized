@@ -1,91 +1,70 @@
-import { pgTable, serial, text, varchar, timestamp, decimal, boolean, integer, jsonb, index } from 'drizzle-orm/pg-core';
-import { relations } from 'drizzle-orm';
+"use server";
+import { db } from "@/db";
+import { categories, products, banners, users, clickLogs, settings } from "@/db/schema";
+import { eq, gte, sql, desc } from "drizzle-orm";
+import { revalidatePath } from "next/cache";
+import { cookies } from "next/headers";
 
-// 1. Categories Table (ප්‍රවර්ග කළමනාකරණය සඳහා)
-export const categories = pgTable('categories', {
-  id: serial('id').primaryKey(),
-  name: varchar('name', { length: 100 }).notNull(),
-  slug: varchar('slug', { length: 100 }).notNull().unique(),
-  icon: text('icon'),
-  order: integer('order').default(0),
-  isEnabled: boolean('is_enabled').default(true),
-  createdAt: timestamp('created_at').defaultNow(),
-});
+async function generateAuthToken(secret: string) {
+  const encoder = new TextEncoder();
+  const key = await crypto.subtle.importKey("raw", encoder.encode(secret), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+  const sig = await crypto.subtle.sign("HMAC", key, encoder.encode("authenticated"));
+  return Array.from(new Uint8Array(sig)).map((b) => b.toString(16).padStart(2, "0")).join("");
+}
 
-// 2. Products Table (අලුත් ShortName සහ Featured Tags සමඟ)
-export const products = pgTable('products', {
-  id: serial('id').primaryKey(),
-  name: varchar('name', { length: 255 }).notNull(),
-  shortName: varchar('short_name', { length: 100 }), // Homepage එකේ පෙන්වන කෙටි නම
-  description: text('description'),
-  price: decimal('price', { precision: 10, scale: 2 }).notNull(),
-  originalPrice: decimal('original_price', { precision: 10, scale: 2 }),
-  discountPercent: integer('discount_percent'),
-  imageUrls: jsonb('image_urls').$type<string[]>().notNull(),
-  categoryId: integer('category_id').references(() => categories.id, { onDelete: 'set null' }),
-  brand: varchar('brand', { length: 100 }),
-  rating: decimal('rating', { precision: 2, scale: 1 }).default('0.0'),
-  affiliateUrl: text('affiliate_url').notNull(),
-  isFlashSale: boolean('is_flash_sale').default(false),
-  isFeatured: boolean('is_featured').default(false), 
-  isHot: boolean('is_hot').default(false),           
-  isNew: boolean('is_new').default(false),           
-  stockStatus: varchar('stock_status', { length: 50 }).default('in_stock'),
-  createdAt: timestamp('created_at').defaultNow(),
-  updatedAt: timestamp('updated_at').defaultNow(),
-}, (table) => [
-  index('idx_products_category_id').on(table.categoryId),
-  index('idx_products_created_at').on(table.createdAt),
-]);
+export async function login(password: string) {
+  const adminPass = process.env.ADMIN_PASSWORD || "admin123";
+  const sessionSecret = process.env.ADMIN_SESSION_SECRET || adminPass;
+  if (password === adminPass) {
+    const token = await generateAuthToken(sessionSecret);
+    const cookieStore = await cookies();
+    cookieStore.set("admin_session", token, { httpOnly: true, secure: true, path: "/", sameSite: "lax", maxAge: 60 * 60 * 24 });
+    return { success: true };
+  }
+  return { success: false };
+}
 
-// 3. Banners Table (Homepage Hero Banner Manager සඳහා)
-export const banners = pgTable('banners', {
-  id: serial('id').primaryKey(),
-  imageUrl: text('image_url').notNull(),
-  title: varchar('title', { length: 255 }),
-  subtitle: text('subtitle'),
-  buttonText: varchar('button_text', { length: 50 }).default('Explore Deals'),
-  buttonUrl: text('button_url').default('/'),
-  order: integer('order').default(0),
-  isEnabled: boolean('is_enabled').default(true),
-});
+export async function logout() {
+  const cookieStore = await cookies();
+  cookieStore.delete("admin_session");
+}
 
-// 4. Users Table (Admin Panel එකේ බැලීමට)
-export const users = pgTable('users', {
-  id: serial('id').primaryKey(),
-  email: varchar('email', { length: 255 }).unique().notNull(),
-  name: varchar('name', { length: 255 }),
-  createdAt: timestamp('created_at').defaultNow(),
-});
+// BANNERS
+export async function upsertBanner(data: any) {
+  if (data.id) await db.update(banners).set(data).where(eq(banners.id, data.id));
+  else await db.insert(banners).values(data);
+  revalidatePath("/"); revalidatePath("/admin");
+}
+export async function addBanner(data: any) { return upsertBanner(data); }
+export async function deleteBanner(id: number) { await db.delete(banners).where(eq(banners.id, id)); revalidatePath("/"); revalidatePath("/admin"); }
 
-// 5. Click Logs Table (Analytics සඳහා)
-export const clickLogs = pgTable('click_logs', {
-  id: serial('id').primaryKey(),
-  productId: integer('product_id').references(() => products.id, { onDelete: 'cascade' }),
-  clickedAt: timestamp('clicked_at').defaultNow(),
-  userAgent: text('user_agent'),
-  ip: varchar('ip', { length: 45 }),
-}, (table) => [
-  index('idx_click_logs_product_id').on(table.productId),
-]);
+// CATEGORIES
+export async function upsertCategory(data: any) {
+  const slug = data.name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+  if (data.id) await db.update(categories).set({ ...data, slug }).where(eq(categories.id, data.id));
+  else await db.insert(categories).values({ ...data, slug });
+  revalidatePath("/"); revalidatePath("/admin");
+}
+export async function addCategory(data: any) { return upsertCategory(data); }
+export async function deleteCategory(id: number) { await db.delete(categories).where(eq(categories.id, id)); revalidatePath("/"); revalidatePath("/admin"); }
 
-// 6. Settings Table (Social Media links සහ වෙනත් settings සඳහා)
-export const settings = pgTable('settings', {
-  id: serial('id').primaryKey(),
-  key: varchar('key', { length: 100 }).notNull().unique(),
-  value: text('value').notNull(),
-});
+// ANALYTICS CLEAR
+export async function clearAnalytics(period: string) {
+  if (period === 'all') {
+    await db.delete(clickLogs);
+  } else {
+    const days = period === 'today' ? 0 : period === '7days' ? 7 : 30;
+    const cutoff = new Date(); cutoff.setDate(cutoff.getDate() - days);
+    await db.delete(clickLogs).where(gte(clickLogs.clickedAt, cutoff));
+  }
+  revalidatePath("/admin");
+}
 
-// --- Relations Section ---
-export const categoriesRelations = relations(categories, ({ many }) => ({
-  products: many(products),
-}));
-
-export const productsRelations = relations(products, ({ one, many }) => ({
-  category: one(categories, { fields: [products.categoryId], references: [categories.id] }),
-  clicks: many(clickLogs),
-}));
-
-export const clickLogsRelations = relations(clickLogs, ({ one }) => ({
-  product: one(products, { fields: [clickLogs.productId], references: [products.id] }),
-}));
+// OTHERS
+export async function deleteProduct(id: number) { await db.delete(products).where(eq(products.id, id)); revalidatePath("/"); revalidatePath("/admin"); }
+export async function deleteUser(id: number) { await db.delete(users).where(eq(users.id, id)); revalidatePath("/admin"); }
+export async function clearAllUsers() { await db.delete(users); revalidatePath("/admin"); }
+export async function updateSetting(key: string, value: string) {
+  await db.insert(settings).values({ key, value }).onConflictDoUpdate({ target: settings.key, set: { value } });
+}
+export async function logAffiliateClick(productId: number) { await db.insert(clickLogs).values({ productId }); }
