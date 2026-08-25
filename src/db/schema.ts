@@ -1,6 +1,7 @@
 import { pgTable, serial, text, varchar, timestamp, decimal, boolean, integer, jsonb, index } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 
+// 1. Categories Table
 export const categories = pgTable('categories', {
   id: serial('id').primaryKey(),
   name: varchar('name', { length: 100 }).notNull(),
@@ -10,6 +11,7 @@ export const categories = pgTable('categories', {
   order: integer('order').default(0),
 });
 
+// 2. Products Table
 export const products = pgTable('products', {
   id: serial('id').primaryKey(),
   name: varchar('name', { length: 255 }).notNull(),
@@ -24,9 +26,11 @@ export const products = pgTable('products', {
   affiliateUrl: text('affiliate_url').notNull(),
   isHot: boolean('is_hot').default(false),
   isFeatured: boolean('is_featured').default(false),
+  isNew: boolean('is_new').default(false), // අනාගතයේදී පාවිච්චි කිරීමට එකතු කරන ලදී
   createdAt: timestamp('created_at').defaultNow(),
 });
 
+// 3. Banners Table
 export const banners = pgTable('banners', {
   id: serial('id').primaryKey(),
   imageUrl: text('image_url').notNull(),
@@ -38,6 +42,7 @@ export const banners = pgTable('banners', {
   order: integer('order').default(0),
 });
 
+// 4. Users Table
 export const users = pgTable('users', {
   id: serial('id').primaryKey(),
   email: varchar('email', { length: 255 }).unique().notNull(),
@@ -45,26 +50,39 @@ export const users = pgTable('users', {
   createdAt: timestamp('created_at').defaultNow(),
 });
 
-// --- FIXED: Added userAgent and ip columns ---
+// 5. Click Logs Table (Analytics)
 export const clickLogs = pgTable('click_logs', {
   id: serial('id').primaryKey(),
   productId: integer('product_id').references(() => products.id, { onDelete: 'cascade' }),
   clickedAt: timestamp('clicked_at').defaultNow(),
-  userAgent: text('user_agent'), // එකතු කරන ලදී
-  ip: varchar('ip', { length: 45 }), // එකතු කරන ලදී
+  userAgent: text('user_agent'), // නිවැරදි කරන ලදී
+  ip: varchar('ip', { length: 45 }), // නිවැරදි කරන ලදී
 });
 
+// 6. Settings Table
 export const settings = pgTable('settings', {
   id: serial('id').primaryKey(),
   key: varchar('key', { length: 100 }).unique().notNull(),
   value: text('value').notNull(),
 });
 
-export const categoriesRelations = relations(categories, ({ many }) => ({ products: many(products) }));
-export const productsRelations = relations(products, ({ one, many }) => ({ 
-  category: one(categories, { fields: [products.categoryId], references: [categories.id] }),
-  clicks: many(clickLogs)
+// --- Relations Section ---
+
+export const categoriesRelations = relations(categories, ({ many }) => ({
+  products: many(products),
 }));
+
+export const productsRelations = relations(products, ({ one, many }) => ({
+  category: one(categories, {
+    fields: [products.categoryId],
+    references: [categories.id],
+  }),
+  clicks: many(clickLogs),
+}));
+
 export const clickLogsRelations = relations(clickLogs, ({ one }) => ({
-  product: one(products, { fields: [clickLogs.productId], references: [products.id] }),
+  product: one(products, {
+    fields: [clickLogs.productId],
+    references: [products.id],
+  }),
 }));
