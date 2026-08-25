@@ -10,8 +10,8 @@ import SplashScreen from "@/components/SplashScreen";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: 'AffiliateShop.lk — Compare Deals & Shop on Daraz',
-  description: 'Best affiliate deals in Sri Lanka',
+  title: 'AffiliateShop.lk',
+  description: 'Best Deals in Sri Lanka',
 };
 
 export const dynamic = "force-dynamic";
@@ -28,7 +28,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
         <SplashScreen />
         <Header categories={categories} />
         <main className="flex-1 relative z-10">
-          <Suspense fallback={<div className="p-20 text-center font-bold text-slate-400">LOADING DEALS...</div>}>
+          <Suspense fallback={<div className="p-20 text-center font-bold text-slate-400">LOADING...</div>}>
             {children}
           </Suspense>
         </main>
