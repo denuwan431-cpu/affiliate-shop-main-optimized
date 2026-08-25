@@ -6,7 +6,7 @@ export default function SplashScreen() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const timer = setTimeout(() => setLoading(false), 2200);
+    const timer = setTimeout(() => setLoading(false), 2000);
     return () => clearTimeout(timer);
   }, []);
 
@@ -15,12 +15,12 @@ export default function SplashScreen() {
       {loading && (
         <motion.div
           initial={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
+          exit={{ opacity: 0, transition: { duration: 0.8 } }}
           className="fixed inset-0 z-[9999] bg-[#0f172a] flex items-center justify-center"
         >
-          <div className="relative overflow-hidden text-center">
+          <div className="text-center">
             <motion.h1 
-              initial={{ y: 50, opacity: 0 }}
+              initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ duration: 0.8, ease: "easeOut" }}
               className="text-4xl md:text-7xl font-[1000] text-white tracking-tighter uppercase italic"
@@ -28,19 +28,11 @@ export default function SplashScreen() {
               AFFILIATE<span className="text-orange-600">SHOP.LK</span>
             </motion.h1>
             <motion.div 
-              initial={{ scaleX: 0 }}
-              animate={{ scaleX: 1 }}
-              transition={{ delay: 0.5, duration: 1 }}
-              className="h-1 bg-orange-600 mt-4 rounded-full origin-left"
+              initial={{ width: 0 }}
+              animate={{ width: "100%" }}
+              transition={{ delay: 0.4, duration: 0.8 }}
+              className="h-1 bg-orange-600 mt-4 rounded-full mx-auto"
             />
-            <motion.p
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 0.5 }}
-              transition={{ delay: 1 }}
-              className="text-white text-[10px] uppercase tracking-[0.5em] mt-4 font-bold"
-            >
-              Find The Best Deals
-            </motion.p>
           </div>
         </motion.div>
       )}
