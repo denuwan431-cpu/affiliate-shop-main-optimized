@@ -4,6 +4,9 @@ import "./globals.css";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { getCategories, getSiteSettings } from "@/lib/data";
+import { Suspense } from "react";
+import PageTransition from "@/components/PageTransition";
+import SplashScreen from "@/components/SplashScreen"; // නව Splash Screen එක
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'),
@@ -13,22 +16,10 @@ export const metadata: Metadata = {
   openGraph: { type: 'website', siteName: 'AffiliateShop.lk' },
 };
 
-// The layout now fetches from the DB (categories/settings for Header/Footer).
-// A couple of routes (/affiliate-disclosure, /admin/login) have no dynamic
-// export of their own, so Next would otherwise try to statically prerender
-// them — and this shared layout — at BUILD time, hitting the DB during the
-// Vercel build. Same reason page.tsx/admin/layout.tsx/sitemap.ts already
-// force dynamic rendering: keep this layout request-time only too.
 export const dynamic = "force-dynamic";
 
-import { Suspense } from "react";
-
-import PageTransition from "@/components/PageTransition";
-
 export default async function RootLayout({ children }: { children: ReactNode }) {
-  // Fetched once here (cached, see src/lib/data.ts) and passed straight into
-  // Header/Footer as props — they no longer need their own client-side
-  // fetch + loading flash for data that's the same on every page.
+  // Database එකෙන් දත්ත ලබා ගැනීම
   const [categories, settings] = await Promise.all([
     getCategories(),
     getSiteSettings(),
@@ -36,9 +27,14 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
 
   return (
     <html lang="en">
-      <body className="bg-gray-50 text-gray-900 antialiased min-h-screen flex flex-col overflow-x-hidden">
+      <body className="animated-bg text-gray-900 antialiased min-h-screen flex flex-col overflow-x-hidden">
+        {/* වෙබ් අඩවිය Load වන විට පෙන්වන Animation එක */}
+        <SplashScreen />
+
+        {/* Header කොටස */}
         <Header categories={categories} />
-        <main className="flex-1">
+        
+        <main className="flex-1 relative z-10">
           <PageTransition>
             <Suspense fallback={
               <div className="flex items-center justify-center min-h-[60vh]">
@@ -54,6 +50,8 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
             </Suspense>
           </PageTransition>
         </main>
+
+        {/* Footer කොටස */}
         <Footer settings={settings} />
       </body>
     </html>
