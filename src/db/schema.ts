@@ -1,72 +1,42 @@
-import { pgTable, serial, text, varchar, timestamp, decimal, boolean, integer, jsonb } from 'drizzle-orm/pg-core';
-import { relations } from 'drizzle-orm';
+import { pgTable, serial, text, varchar, timestamp, boolean, integer, decimal } from "drizzle-orm/pg-core";
 
-export const categories = pgTable('categories', {
-  id: serial('id').primaryKey(),
-  name: varchar('name', { length: 100 }).notNull(),
-  slug: varchar('slug', { length: 100 }).notNull().unique(),
-  icon: text('icon'),
-  isEnabled: boolean('is_enabled').default(true),
-  order: integer('order').default(0),
+export const siteSettings = pgTable("site_settings", {
+  id: serial("id").primaryKey(),
+  siteName: varchar("site_name", { length: 255 }).default("AffiliateShop.lk"),
+  facebookUrl: text("facebook_url"),
+  youtubeUrl: text("youtube_url"),
+  instagramUrl: text("instagram_url"),
 });
 
-export const products = pgTable('products', {
-  id: serial('id').primaryKey(),
-  name: varchar('name', { length: 255 }).notNull(),
-  shortName: varchar('short_name', { length: 100 }),
-  description: text('description'),
-  price: decimal('price', { precision: 10, scale: 2 }).notNull(),
-  originalPrice: decimal('original_price', { precision: 10, scale: 2 }),
-  discountPercent: integer('discount_percent'),
-  imageUrls: jsonb('image_urls').$type<string[]>().notNull(),
-  categoryId: integer('category_id').references(() => categories.id, { onDelete: 'set null' }),
-  brand: varchar('brand', { length: 100 }),
-  rating: decimal('rating', { precision: 2, scale: 1 }).default('5.0'),
-  affiliateUrl: text('affiliate_url').notNull(),
-  isHot: boolean('is_hot').default(false),
-  isFeatured: boolean('is_featured').default(false),
-  isFlashSale: boolean('is_flash_sale').default(false),
-  createdAt: timestamp('created_at').defaultNow(),
-  updatedAt: timestamp('updated_at').defaultNow(),
+export const categories = pgTable("categories", {
+  id: serial("id").primaryKey(),
+  name: varchar("name", { length: 100 }).notNull(),
+  slug: varchar("slug", { length: 100 }).notNull(),
+  order: integer("order").default(0),
+  isEnabled: boolean("is_enabled").default(true),
 });
 
-export const banners = pgTable('banners', {
-  id: serial('id').primaryKey(),
-  imageUrl: text('image_url').notNull(),
-  title: varchar('title', { length: 255 }),
-  subtitle: text('subtitle'),
-  buttonText: varchar('button_text', { length: 50 }).default('Check Deal'),
-  buttonUrl: text('button_url').default('/'),
-  isEnabled: boolean('is_enabled').default(true),
-  order: integer('order').default(0),
+export const products = pgTable("products", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  shortName: varchar("short_name", { length: 100 }),
+  price: decimal("price", { precision: 10, scale: 2 }).notNull(),
+  originalPrice: decimal("original_price", { precision: 10, scale: 2 }),
+  discountLabel: varchar("discount_label", { length: 50 }),
+  categoryId: integer("category_id").references(() => categories.id, { onDelete: 'cascade' }),
+  affiliateLink: text("affiliate_link").notNull(),
+  imageUrl: text("image_url").notNull(),
+  isFeatured: boolean("is_featured").default(false),
+  isHot: boolean("is_hot").default(false),
+  clicks: integer("clicks").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
 });
 
-export const users = pgTable('users', {
-  id: serial('id').primaryKey(),
-  email: varchar('email', { length: 255 }).unique().notNull(),
-  name: varchar('name', { length: 255 }),
-  createdAt: timestamp('created_at').defaultNow(),
+export const banners = pgTable("banners", {
+  id: serial("id").primaryKey(),
+  imageUrl: text("image_url").notNull(),
+  title: varchar("title", { length: 255 }),
+  subtitle: text("subtitle"),
+  order: integer("order").default(0),
+  isEnabled: boolean("is_enabled").default(true),
 });
-
-export const clickLogs = pgTable('click_logs', {
-  id: serial('id').primaryKey(),
-  productId: integer('product_id').references(() => products.id, { onDelete: 'cascade' }),
-  clickedAt: timestamp('clicked_at').defaultNow(),
-  userAgent: text('user_agent'),
-  ip: varchar('ip', { length: 45 }),
-});
-
-export const settings = pgTable('settings', {
-  id: serial('id').primaryKey(),
-  key: varchar('key', { length: 100 }).unique().notNull(),
-  value: text('value').notNull(),
-});
-
-export const categoriesRelations = relations(categories, ({ many }) => ({ products: many(products) }));
-export const productsRelations = relations(products, ({ one, many }) => ({ 
-  category: one(categories, { fields: [products.categoryId], references: [categories.id] }),
-  clicks: many(clickLogs)
-}));
-export const clickLogsRelations = relations(clickLogs, ({ one }) => ({
-  product: one(products, { fields: [clickLogs.productId], references: [products.id] }),
-}));
