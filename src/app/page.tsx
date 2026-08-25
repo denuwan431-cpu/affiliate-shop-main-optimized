@@ -13,11 +13,13 @@ export default async function HomePage({ searchParams }: any) {
   const searchQuery = params.q || '';
   const sortOrder = params.sort || 'newest';
 
+  // Fetch Banners and Categories
   const [heroBanners, activeCats] = await Promise.all([
     db.query.banners.findMany({ where: eq(banners.isEnabled, true), orderBy: [asc(banners.order)] }),
     db.query.categories.findMany({ where: eq(categories.isEnabled, true), orderBy: [asc(categories.order)] })
   ]);
 
+  // Filtering Logic
   let conditions: any[] = [];
   if (selectedCat !== 'all') {
     const cat = activeCats.find(c => c.slug === selectedCat);
@@ -27,6 +29,7 @@ export default async function HomePage({ searchParams }: any) {
     conditions.push(or(ilike(products.name, `%${searchQuery}%`), ilike(products.shortName, `%${searchQuery}%`)));
   }
 
+  // Sorting Logic
   let orderBy: any = [desc(products.createdAt)];
   if (sortOrder === 'price_low') orderBy = [asc(products.price)];
   if (sortOrder === 'price_high') orderBy = [desc(products.price)];
@@ -39,34 +42,51 @@ export default async function HomePage({ searchParams }: any) {
 
   return (
     <main className="min-h-screen bg-[#fafafa] pb-24">
-      {/* Premium Hero Banner */}
+      {/* 1. Hero Banner Manager */}
       {heroBanners.length > 0 && (
-        <section className="relative h-[450px] md:h-[600px] w-full bg-gray-900 overflow-hidden mb-12">
-          <img src={heroBanners[0].imageUrl} className="absolute inset-0 w-full h-full object-cover opacity-60" alt="Banner" />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
-          <div className="relative z-10 flex flex-col items-center justify-center h-full text-white text-center px-6 max-w-4xl mx-auto">
-            <span className="bg-orange-500 text-white text-[10px] font-black px-4 py-1.5 rounded-full uppercase tracking-[0.3em] mb-6 animate-bounce">Exclusive Offer</span>
-            <h1 className="text-4xl md:text-7xl font-black mb-6 uppercase tracking-tighter leading-[0.9]">{heroBanners[0].title}</h1>
-            <p className="text-lg md:text-xl opacity-80 mb-10 max-w-2xl font-medium leading-relaxed">{heroBanners[0].subtitle}</p>
-            <Link href={heroBanners[0].buttonUrl || '/'} className="bg-white text-black hover:bg-orange-600 hover:text-white px-12 py-5 rounded-full font-black text-sm uppercase tracking-widest shadow-2xl transition-all hover:scale-105 active:scale-95">
-              {heroBanners[0].buttonText || 'Discover Deals'}
+        <section className="relative h-[450px] md:h-[600px] w-full bg-gray-900 overflow-hidden mb-12 shadow-2xl">
+          <img 
+            src={heroBanners[0].imageUrl} 
+            className="absolute inset-0 w-full h-full object-cover opacity-60" 
+            alt="Hero Banner" 
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent"></div>
+          <div className="relative z-10 flex flex-col items-center justify-center h-full text-white text-center px-6 max-w-5xl mx-auto">
+            <span className="bg-orange-600 text-white text-[10px] font-black px-5 py-2 rounded-full uppercase tracking-[0.3em] mb-6 shadow-xl animate-pulse">Exclusive Deals</span>
+            <h1 className="text-4xl md:text-8xl font-black mb-6 uppercase tracking-tighter leading-[0.9] drop-shadow-2xl">
+              {heroBanners[0].title}
+            </h1>
+            <p className="text-lg md:text-2xl opacity-90 mb-10 max-w-2xl font-medium leading-relaxed drop-shadow-lg">
+              {heroBanners[0].subtitle}
+            </p>
+            <Link 
+              href={heroBanners[0].buttonUrl || '/'} 
+              className="bg-white text-black hover:bg-orange-600 hover:text-white px-14 py-5 rounded-full font-black text-sm uppercase tracking-widest shadow-2xl transition-all hover:scale-105 active:scale-95"
+            >
+              {heroBanners[0].buttonText || 'Discover More'}
             </Link>
           </div>
         </section>
       )}
 
       <div className="max-w-7xl mx-auto px-6">
+        {/* 2. Professional Filters (Search bar is inside this) */}
         <HomeFilters categories={activeCats} />
         
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-          {allProducts.map(p => <ProductCard key={p.id} product={p} />)}
+        {/* 3. Product Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-8">
+          {allProducts.map(p => (
+            <ProductCard key={p.id} product={p} />
+          ))}
         </div>
 
+        {/* 4. Empty State */}
         {allProducts.length === 0 && (
-          <div className="py-32 text-center">
-            <div className="text-gray-200 text-8xl mb-6">🔍</div>
-            <h3 className="text-xl font-black text-gray-800 uppercase tracking-tighter">No results found</h3>
-            <p className="text-gray-400 text-sm mt-2">Try searching with different keywords or categories.</p>
+          <div className="py-32 text-center bg-white rounded-[40px] border border-slate-100 shadow-sm mt-10">
+            <div className="text-slate-200 text-8xl mb-6">🔍</div>
+            <h3 className="text-xl font-black text-slate-800 uppercase tracking-widest">No matching results</h3>
+            <p className="text-slate-400 text-sm mt-2">Try clearing your filters or search for something else.</p>
+            <Link href="/" className="mt-6 inline-block text-orange-600 font-black border-b-2 border-orange-600 pb-1 uppercase text-xs tracking-widest">View all products</Link>
           </div>
         )}
       </div>
