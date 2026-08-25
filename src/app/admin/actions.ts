@@ -1,120 +1,65 @@
-'use server';
+"use server";
+import { db } from "@/db";
+import { categories, products, banners, users, clickLogs } from "@/db/schema";
+import { eq, gte, sql, desc } from "drizzle-orm";
+import { revalidatePath } from "next/cache";
 
-import { db } from '@/db';
-import { products, categories, banners, settings } from '@/db/schema';
-import { eq } from 'drizzle-orm';
-import { revalidatePath } from 'next/cache';
-import { cookies } from 'next/headers';
-import { createAdminToken, COOKIE_NAME } from '@/lib/auth';
+// SECURITY: Verify admin session here if needed
+async function checkAuth() { return true; }
 
-// Product Actions
-export async function addProduct(data: any) {
-  await db.insert(products).values({
-    ...data,
-    price: data.price.toString(),
-    originalPrice: data.originalPrice?.toString(),
-    rating: data.rating?.toString() || '0.0',
-  });
-  revalidatePath('/');
-  revalidatePath('/search');
-}
-
-export async function updateProduct(id: number, data: any) {
-  await db.update(products).set({
-    ...data,
-    price: data.price.toString(),
-    originalPrice: data.originalPrice?.toString(),
-    rating: data.rating?.toString() || '0.0',
-    updatedAt: new Date(),
-  }).where(eq(products.id, id));
-  revalidatePath('/');
-  revalidatePath(`/product/${id}`);
-}
-
-export async function deleteProduct(id: number) {
-  await db.delete(products).where(eq(products.id, id));
-  revalidatePath('/');
-}
-
-// Banner Actions
-export async function addBanner(data: any) {
-  await db.insert(banners).values(data);
-  revalidatePath('/');
-}
-
-export async function deleteBanner(id: number) {
-  await db.delete(banners).where(eq(banners.id, id));
-  revalidatePath('/');
-}
-
-export async function login(password: string) {
-  if (password === (process.env.ADMIN_PASSWORD || '')) {
-    const cookieStore = await cookies();
-    cookieStore.set(COOKIE_NAME, createAdminToken(), {
-      path: '/',
-      maxAge: 3600,
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-    });
-    return { success: true };
-  }
-  return { success: false };
-}
-
-export async function logout() {
-  const cookieStore = await cookies();
-  cookieStore.delete(COOKIE_NAME);
-  revalidatePath('/');
-}
-
-// Category Actions
-export async function addCategory(data: any) {
-  await db.insert(categories).values({
-    ...data,
-    slug: data.name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
-  });
-  revalidatePath('/');
+// --- Categories ---
+export async function upsertCategory(data: any) {
+  await checkAuth();
+  if (data.id) await db.update(categories).set(data).where(eq(categories.id, data.id));
+  else await db.insert(categories).values(data);
+  revalidatePath("/"); revalidatePath("/admin/categories");
 }
 
 export async function deleteCategory(id: number) {
-  // First, set categoryId to null for all products in this category
-  await db.update(products).set({ categoryId: null }).where(eq(products.categoryId, id));
-  // Then delete the category
+  await checkAuth();
   await db.delete(categories).where(eq(categories.id, id));
-  revalidatePath('/');
+  revalidatePath("/admin/categories");
 }
 
-// Settings Actions
-export async function updateSetting(key: string, value: string) {
-  const existing = await db.query.settings.findFirst({
-    where: eq(settings.key, key),
-  });
+// --- Banners ---
+export async function upsertBanner(data: any) {
+  await checkAuth();
+  if (data.id) await db.update(banners).set(data).where(eq(banners.id, data.id));
+  else await db.insert(banners).values(data);
+  revalidatePath("/"); revalidatePath("/admin/banners");
+}
 
-  if (existing) {
-    await db.update(settings).set({ value }).where(eq(settings.key, key));
-  } else {
-    await db.insert(settings).values({ key, value });
+export async function deleteBanner(id: number) {
+  await checkAuth();
+  await db.delete(banners).where(eq(banners.id, id));
+  revalidatePath("/admin/banners");
+}
+
+// --- Users ---
+export async function deleteUser(id: number) {
+  await checkAuth();
+  await db.delete(users).where(eq(users.id, id));
+  revalidatePath("/admin/users");
+}
+
+export async function clearAllUsers() {
+  await checkAuth();
+  await db.delete(users);
+  revalidatePath("/admin/users");
+}
+
+// --- Analytics ---
+export async function logAffiliateClick(productId: number) {
+  await db.insert(clickLogs).values({ productId });
+}
+
+export async function clearAnalytics(period: string) {
+  await checkAuth();
+  if (period === 'all') await db.delete(clickLogs);
+  else {
+    const days = period === 'today' ? 0 : period === '7days' ? 7 : 30;
+    const date = new Date(); date.setDate(date.getDate() - days);
+    await db.delete(clickLogs).where(gte(clickLogs.clickedAt, date));
   }
-  revalidatePath('/');
+  revalidatePath("/admin/analytics");
 }
-
-export async function getSettings() {
-  const allSettings = await db.query.settings.findMany();
-  return allSettings.reduce((acc: any, curr) => {
-    acc[curr.key] = curr.value;
-    return acc;
-  }, {});
-}
-
-export async function getClickStats() {
-  const logs = await db.query.clickLogs.findMany({
-    with: {
-      product: true,
-    },
-    orderBy: (clickLogs, { desc }) => [desc(clickLogs.clickedAt)],
-    limit: 50,
-  });
-  return logs;
-}
-
