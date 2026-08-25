@@ -14,14 +14,8 @@ export default async function HomePage({ searchParams }: any) {
   const sort = p.sort || 'newest';
 
   const [heroBanners, activeCats] = await Promise.all([
-    db.query.banners.findMany({ 
-      where: eq(banners.isEnabled, true), 
-      orderBy: [asc(banners.order)] 
-    }),
-    db.query.categories.findMany({ 
-      where: eq(categories.isEnabled, true), 
-      orderBy: [asc(categories.order)] 
-    })
+    db.query.banners.findMany({ where: eq(banners.isEnabled, true), orderBy: [asc(banners.order)] }),
+    db.query.categories.findMany({ where: eq(categories.isEnabled, true), orderBy: [asc(categories.order)] })
   ]);
 
   let cond: any[] = [];
@@ -36,31 +30,21 @@ export default async function HomePage({ searchParams }: any) {
   if (sort === 'price_high') order = [desc(products.price)];
   if (sort === 'rating') order = [desc(products.rating)];
 
-  const all = await db.query.products.findMany({ 
-    where: cond.length ? (cond.length > 1 ? undefined : cond[0]) : undefined, 
-    orderBy: order 
-  });
+  const all = await db.query.products.findMany({ where: cond.length ? (cond.length > 1 ? undefined : cond[0]) : undefined, orderBy: order });
 
   return (
-    <main className="min-h-screen bg-[#fafafa] pb-20">
-      {/* Hero Banner Section */}
-      <HeroSlider banners={heroBanners} />
+    <main className="min-h-screen pb-20 overflow-hidden">
+      <div className="animate-in fade-in duration-1000">
+        <HeroSlider banners={heroBanners} />
+      </div>
       
       <div className="max-w-7xl mx-auto px-4 md:px-8">
-        {/* Category & Sorting Section */}
-        <HomeFilters categories={activeCats} />
-        
-        {/* Products Grid */}
-        {all.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8">
+        <div className="animate-in fade-in slide-in-from-bottom-4 duration-1000 delay-200 fill-mode-both">
+          <HomeFilters categories={activeCats} />
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-10">
             {all.map(x => <ProductCard key={x.id} product={x} />)}
           </div>
-        ) : (
-          <div className="py-20 text-center">
-            <h3 className="text-xl font-bold text-slate-400 uppercase tracking-widest">No products found</h3>
-            <p className="text-slate-500 mt-2">Try adjusting your filters or search.</p>
-          </div>
-        )}
+        </div>
       </div>
     </main>
   );
