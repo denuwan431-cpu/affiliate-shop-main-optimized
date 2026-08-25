@@ -8,7 +8,7 @@ export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  // 1. Resolve parameters
+  // 1. Resolve parameters (Next.js 15+ සඳහා අත්‍යවශ්‍ය වේ)
   const resolvedParams = await params;
   const productId = parseInt(resolvedParams.id);
 
@@ -16,7 +16,7 @@ export async function GET(
     return NextResponse.redirect(new URL('/', request.url));
   }
 
-  // 2. Find the product
+  // 2. භාණ්ඩය පරීක්ෂා කිරීම
   const product = await db.query.products.findFirst({
     where: eq(products.id, productId),
   });
@@ -25,14 +25,14 @@ export async function GET(
     return NextResponse.redirect(new URL('/', request.url));
   }
 
-  // 3. Get visitor information
+  // 3. Analytics සඳහා පාරිභෝගික විස්තර ලබා ගැනීම
   const headerList = await headers();
   const userAgent = headerList.get('user-agent') || 'unknown';
   const ip = headerList.get('x-forwarded-for')?.split(',')[0] || 'unknown';
 
   try {
-    // 4. Record the click in database
-    // @ts-ignore - ඉහත schema එක සමහර විට Vercel build එකේදී පරක්කු වී sync වුණත් මෙය error එකක් පෙන්වීම වළක්වයි
+    // 4. ක්ලික් එක සටහන් කිරීම
+    // @ts-ignore
     await db.insert(clickLogs).values({
       productId: product.id,
       userAgent: userAgent,
@@ -42,6 +42,6 @@ export async function GET(
     console.error('Logging error:', error);
   }
 
-  // 5. Redirect to affiliate site
+  // 5. Affiliate URL එකට යොමු කිරීම
   return NextResponse.redirect(product.affiliateUrl);
 }
