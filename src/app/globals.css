@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Background Animation */
+/* Premium Animated Background */
 .animated-bg {
   background: linear-gradient(-45deg, #ffffff, #f8fafc, #fff7ed, #f1f5f9);
   background-size: 400% 400%;
