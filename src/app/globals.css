@@ -2,7 +2,18 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Premium Animated Background */
+:root {
+  --foreground-rgb: 15, 23, 42;
+}
+
+body {
+  color: rgb(var(--foreground-rgb));
+  background-color: #fafafa;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
 .animated-bg {
   background: linear-gradient(-45deg, #ffffff, #f8fafc, #fff7ed, #f1f5f9);
   background-size: 400% 400%;
@@ -15,15 +26,6 @@
   100% { background-position: 0% 50%; }
 }
 
-body {
-  background-color: #fafafa;
-  overflow-x: hidden;
-}
-
 .no-scrollbar::-webkit-scrollbar {
   display: none;
-}
-.no-scrollbar {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
 }
