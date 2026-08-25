@@ -1,6 +1,5 @@
 "use client";
 import React, { useState, useEffect } from 'react';
-import Link from 'next/link';
 
 export default function HeroSlider({ banners }: { banners: any[] }) {
   const [current, setCurrent] = useState(0);
@@ -14,25 +13,51 @@ export default function HeroSlider({ banners }: { banners: any[] }) {
   if (!banners.length) return null;
 
   return (
-    <section className="relative h-[480px] md:h-[650px] w-full bg-slate-950 overflow-hidden mb-16">
+    <section className="relative h-[400px] md:h-[550px] w-full bg-slate-100 overflow-hidden mb-12">
       {banners.map((b, i) => (
-        <div key={b.id} className={`absolute inset-0 transition-all duration-1000 ${i === current ? 'opacity-100 scale-100' : 'opacity-0 scale-110 pointer-events-none'}`}>
-          <img src={b.imageUrl} className="absolute inset-0 w-full h-full object-cover opacity-50" alt="" />
-          <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent" />
-          <div className="relative z-10 flex flex-col items-center justify-center h-full text-white text-center px-6 max-w-5xl mx-auto">
-            <span className="bg-orange-600 text-white text-[11px] font-black px-6 py-2 rounded-full uppercase tracking-[0.4em] mb-8 shadow-2xl">Premium Deals</span>
-            <h1 className="text-4xl md:text-8xl font-[1000] mb-8 uppercase tracking-tighter italic leading-[0.85]">{b.title}</h1>
-            <p className="text-lg md:text-2xl opacity-80 mb-12 font-bold max-w-2xl">{b.subtitle}</p>
-            <Link href={b.buttonUrl || '/'} className="bg-white text-black hover:bg-orange-600 hover:text-white px-16 py-6 rounded-full font-black text-sm uppercase tracking-widest transition-all hover:scale-110 active:scale-95 shadow-2xl">
-              {b.buttonText || 'Discover More'}
-            </Link>
-          </div>
+        <div 
+          key={b.id} 
+          className={`absolute inset-0 transition-all duration-1000 ease-in-out ${
+            i === current ? 'opacity-100 scale-100' : 'opacity-0 scale-105 pointer-events-none'
+          }`}
+        >
+          {/* Banner Image */}
+          <img src={b.imageUrl} className="absolute inset-0 w-full h-full object-cover" alt={b.title || "Banner"} />
+          
+          {/* Overlay Gradient - පේන්නේ Text එකක් තිබුණොත් පමණයි */}
+          {(b.title || b.subtitle) && (
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+          )}
+
+          {/* Text Content - තිබුණොත් පමණක් පෙන්වයි */}
+          {(b.title || b.subtitle) && (
+            <div className="relative z-10 flex flex-col items-center justify-end h-full text-white text-center pb-20 px-6 max-w-5xl mx-auto">
+              {b.title && (
+                <h1 className="text-3xl md:text-6xl font-black mb-4 uppercase tracking-tighter drop-shadow-lg">
+                  {b.title}
+                </h1>
+              )}
+              {b.subtitle && (
+                <p className="text-sm md:text-xl opacity-90 font-medium max-w-2xl drop-shadow-md">
+                  {b.subtitle}
+                </p>
+              )}
+            </div>
+          )}
         </div>
       ))}
+
+      {/* Navigation Dots */}
       {banners.length > 1 && (
-        <div className="absolute bottom-12 left-1/2 -translate-x-1/2 z-20 flex gap-4">
+        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 flex gap-2">
           {banners.map((_, i) => (
-            <button key={i} onClick={() => setCurrent(i)} className={`h-1.5 rounded-full transition-all duration-500 ${i === current ? 'bg-orange-600 w-16' : 'bg-white/20 w-8'}`} />
+            <button 
+              key={i} 
+              onClick={() => setCurrent(i)} 
+              className={`h-1.5 rounded-full transition-all duration-500 ${
+                i === current ? 'bg-orange-500 w-8' : 'bg-white/50 w-2'
+              }`} 
+            />
           ))}
         </div>
       )}
