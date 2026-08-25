@@ -1,60 +1,264 @@
 import { db } from "@/db";
 import { products, categories, banners } from "@/db/schema";
-import { eq, asc, desc, ilike, or } from "drizzle-orm";
+
+import {
+  eq,
+  asc,
+  desc,
+  ilike,
+  or,
+  and,
+} from "drizzle-orm";
+
 import ProductCard from "@/components/ProductCard";
 import HomeFilters from "@/components/HomeFilters";
 import HeroSlider from "@/components/HeroSlider";
 
-export const dynamic = 'force-dynamic';
 
-export default async function HomePage({ searchParams }: any) {
-  const p = await searchParams;
-  const cat = p.category || 'all';
-  const q = p.q || '';
-  const sort = p.sort || 'newest';
+export const dynamic = "force-dynamic";
+
+
+export default async function HomePage({
+  searchParams,
+}: {
+  searchParams: Promise<{
+    category?: string;
+    q?: string;
+    sort?: string;
+  }>;
+}) {
+
+  const params = await searchParams;
+
+  const cat = params?.category || "all";
+  const q = params?.q || "";
+  const sort = params?.sort || "newest";
+
+
+  /* =========================================================
+     GET HERO BANNERS + CATEGORIES
+     ========================================================= */
 
   const [heroBanners, activeCats] = await Promise.all([
-    db.query.banners.findMany({ where: eq(banners.isEnabled, true), orderBy: [asc(banners.order)] }),
-    db.query.categories.findMany({ where: eq(categories.isEnabled, true), orderBy: [asc(categories.order)] })
+
+    db.query.banners.findMany({
+      where: eq(banners.isEnabled, true),
+      orderBy: [
+        asc(banners.order),
+      ],
+    }),
+
+    db.query.categories.findMany({
+      where: eq(categories.isEnabled, true),
+      orderBy: [
+        asc(categories.order),
+      ],
+    }),
+
   ]);
 
-  let cond: any[] = [];
-  if (cat !== 'all') {
-    const c = activeCats.find(x => x.slug === cat);
-    if (c) cond.push(eq(products.categoryId, c.id));
+
+  /* =========================================================
+     PRODUCT FILTERS
+     ========================================================= */
+
+  const conditions = [];
+
+
+  /* Category */
+
+  if (cat !== "all") {
+
+    const selectedCategory = activeCats.find(
+      (category) => category.slug === cat
+    );
+
+    if (selectedCategory) {
+      conditions.push(
+        eq(products.categoryId, selectedCategory.id)
+      );
+    }
+
   }
-  if (q) cond.push(or(ilike(products.name, `%${q}%`), ilike(products.shortName, `%${q}%`)));
 
-  let order: any = [desc(products.createdAt)];
-  if (sort === 'price_low') order = [asc(products.price)];
-  if (sort === 'price_high') order = [desc(products.price)];
-  if (sort === 'rating') order = [desc(products.rating)];
 
-  const all = await db.query.products.findMany({ where: cond.length ? (cond.length > 1 ? undefined : cond[0]) : undefined, orderBy: order });
+  /* Search */
+
+  if (q.trim()) {
+
+    conditions.push(
+      or(
+        ilike(products.name, `%${q.trim()}%`),
+        ilike(products.shortName, `%${q.trim()}%`)
+      )
+    );
+
+  }
+
+
+  /* =========================================================
+     SORTING
+     ========================================================= */
+
+  let orderBy = [
+    desc(products.createdAt),
+  ];
+
+
+  if (sort === "price_low") {
+    orderBy = [
+      asc(products.price),
+    ];
+  }
+
+
+  if (sort === "price_high") {
+    orderBy = [
+      desc(products.price),
+    ];
+  }
+
+
+  if (sort === "rating") {
+    orderBy = [
+      desc(products.rating),
+    ];
+  }
+
+
+  /* =========================================================
+     GET PRODUCTS
+     ========================================================= */
+
+  const all = await db.query.products.findMany({
+
+    where:
+      conditions.length > 0
+        ? and(...conditions)
+        : undefined,
+
+    orderBy,
+
+  });
+
+
+  /* =========================================================
+     PAGE
+     ========================================================= */
 
   return (
-    <main className="min-h-screen pb-20 overflow-hidden">
-      {/* Hero Section */}
-      <div className="animate-fadeIn">
-        <HeroSlider banners={heroBanners} />
-      </div>
-      
-      <div className="max-w-7xl mx-auto px-4 md:px-8">
-        {/* Filters and Grid Section */}
-        <div className="animate-fadeIn [animation-delay:400ms] fill-mode-both">
-          <HomeFilters categories={activeCats} />
-          
-          {all.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-10">
-              {all.map(x => <ProductCard key={x.id} product={x} />)}
-            </div>
-          ) : (
-            <div className="py-20 text-center text-slate-400 font-bold uppercase tracking-widest animate-pulse">
-              No products found
-            </div>
-          )}
+    <main className="min-h-screen overflow-hidden pb-20">
+
+
+      {/* =====================================================
+          HERO
+          ===================================================== */}
+
+      <section className="animate-fadeIn">
+
+        <HeroSlider
+          banners={heroBanners}
+        />
+
+      </section>
+
+
+      {/* =====================================================
+          PRODUCTS
+          ===================================================== */}
+
+      <div className="mx-auto w-full max-w-7xl px-4 md:px-8">
+
+
+        {/* Filters */}
+
+        <div className="animate-fadeIn">
+
+          <HomeFilters
+            categories={activeCats}
+          />
+
         </div>
+
+
+        {/* ===================================================
+            PRODUCT GRID
+            =================================================== */}
+
+        {all.length > 0 ? (
+
+          <div
+            className="
+              grid
+              grid-cols-1
+              gap-6
+              sm:grid-cols-2
+              lg:grid-cols-3
+              xl:grid-cols-4
+              md:gap-8
+            "
+          >
+
+            {all.map((product) => (
+
+              <ProductCard
+                key={product.id}
+                product={product}
+              />
+
+            ))}
+
+          </div>
+
+        ) : (
+
+          /* =================================================
+             NO PRODUCTS
+             ================================================= */
+
+          <div
+            className="
+              flex
+              min-h-[300px]
+              items-center
+              justify-center
+              py-20
+              text-center
+            "
+          >
+
+            <div
+              className="
+                rounded-2xl
+                border
+                border-slate-200
+                bg-white/70
+                px-8
+                py-10
+                shadow-sm
+                backdrop-blur
+              "
+            >
+
+              <p
+                className="
+                  font-bold
+                  uppercase
+                  tracking-widest
+                  text-slate-400
+                "
+              >
+                No products found
+              </p>
+
+            </div>
+
+          </div>
+
+        )}
+
       </div>
+
     </main>
   );
 }
