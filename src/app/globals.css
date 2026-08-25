@@ -1,27 +1,33 @@
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-@theme {
-  --color-orange-500: #f97316;
-  --color-orange-600: #ea580c;
+:root {
+  --foreground-rgb: 15, 23, 42;
 }
 
 body {
-  background-color: #f3f4f6 !important;
+  color: rgb(var(--foreground-rgb));
+  overflow-x: hidden;
 }
 
-.bg-orange-500 {
-  background-color: #f97316 !important;
+/* Premium Animated Background */
+.animated-bg {
+  background: linear-gradient(-45deg, #f8fafc, #f1f5f9, #fff7ed, #fafafa);
+  background-size: 400% 400%;
+  animation: gradientBG 15s ease infinite;
 }
 
-.text-orange-500 {
-  color: #f97316 !important;
+@keyframes gradientBG {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
 }
 
-@keyframes shake {
-  0%, 100% { transform: translateX(0); }
-  25% { transform: translateX(-5px); }
-  75% { transform: translateX(5px); }
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
 }
-.animate-shake {
-  animation: shake 0.2s ease-in-out 0s 2;
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
