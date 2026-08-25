@@ -11,15 +11,17 @@ async function checkAuth() { return true; }
 // --- Login / Logout ---
 export async function login(password: string) {
   // මෙහි ඔබගේ මුරපදය පරීක්ෂා කිරීමේ logic එක එක් කරන්න
-  if (password === process.env.ADMIN_PASSWORD || "admin123") {
-    cookies().set("admin_session", "true", { httpOnly: true });
+  if (password === (process.env.ADMIN_PASSWORD || "admin123")) {
+    const cookieStore = await cookies(); // await එකතු කරන ලදී
+    cookieStore.set("admin_session", "true", { httpOnly: true });
     return { success: true };
   }
   return { success: false };
 }
 
 export async function logout() {
-  cookies().delete("admin_session");
+  const cookieStore = await cookies(); // await එකතු කරන ලදී
+  cookieStore.delete("admin_session");
 }
 
 // --- Products ---
@@ -41,7 +43,7 @@ export async function deleteProduct(id: number) {
   revalidatePath("/"); revalidatePath("/admin");
 }
 
-// --- Categories (Renamed to 'upsertCategory' to match UI) ---
+// --- Categories ---
 export async function upsertCategory(data: any) {
   await checkAuth();
   const slug = data.name.toLowerCase().replace(/ /g, '-');
@@ -63,7 +65,7 @@ export async function deleteCategory(id: number) {
   revalidatePath("/"); revalidatePath("/admin");
 }
 
-// --- Banners (Renamed to 'upsertBanner' to match UI) ---
+// --- Banners ---
 export async function upsertBanner(data: any) {
   await checkAuth();
   if (data.id) {
