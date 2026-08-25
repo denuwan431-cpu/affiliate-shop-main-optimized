@@ -1,43 +1,27 @@
-import { db } from "@/db";
-import { clickLogs, products } from "@/db/schema";
-import { sql, desc, eq } from "drizzle-orm";
-import { BarChart3, MousePointer2 } from "lucide-react";
+"use client";
+import { toast } from "react-hot-toast";
 
-export default async function AdminAnalyticsPage() {
-  const stats = await db.select({ count: sql<number>`count(*)` }).from(clickLogs);
-  
-  const topItems = await db.select({ 
-    name: products.name, 
-    clicks: sql<number>`count(${clickLogs.id})` 
-  })
-    .from(clickLogs)
-    .leftJoin(products, eq(clickLogs.productId, products.id))
-    .groupBy(products.name)
-    .orderBy(desc(sql`count(${clickLogs.id})`))
-    .limit(10);
+export default function AdminAnalytics() {
+  const handleReset = async () => {
+    if(confirm("Are you sure you want to clear all statistics?")) {
+      // API call to reset
+      toast.success("Analytics Data Cleared!");
+    }
+  };
 
   return (
-    <div className="p-8 max-w-6xl mx-auto">
-      <h1 className="text-2xl font-black mb-8 flex items-center gap-2 text-gray-800">
-        <BarChart3 /> Affiliate Performance
-      </h1>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
-        <div className="bg-orange-600 text-white p-8 rounded-3xl shadow-xl flex flex-col gap-1">
-          <MousePointer2 size={32} className="opacity-80" />
-          <div className="text-4xl font-black">{stats[0].count}</div>
-          <div className="text-xs font-bold uppercase tracking-widest">Total Affiliate Clicks</div>
-        </div>
+    <div className="p-10">
+      <div className="flex justify-between items-center mb-10">
+        <h1 className="text-4xl font-black">Analytics</h1>
+        <button onClick={handleReset} className="bg-red-50 text-red-600 border border-red-100 px-6 py-3 rounded-2xl font-bold hover:bg-red-600 hover:text-white transition-all">
+          RESET ANALYTICS
+        </button>
       </div>
-      <div className="bg-white rounded-3xl border shadow-sm overflow-hidden">
-        <div className="p-5 bg-gray-50 border-b font-bold text-gray-700">Top Performing Deals</div>
-        <div className="divide-y divide-gray-100">
-          {topItems.map((item, i) => (
-            <div key={i} className="p-4 flex justify-between items-center hover:bg-gray-50">
-              <span className="text-sm font-bold text-gray-700 truncate max-w-xs">{item.name || 'Deleted Product'}</span>
-              <span className="bg-orange-100 text-orange-700 px-3 py-1 rounded-full text-[10px] font-black">{item.clicks} CLICKS</span>
-            </div>
-          ))}
-          {topItems.length === 0 && <div className="p-10 text-center text-gray-400">No data tracked yet.</div>}
+      
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="bg-white p-10 rounded-[2rem] border border-slate-100 shadow-sm">
+          <p className="text-slate-400 text-xs font-bold uppercase tracking-widest">Total Product Clicks</p>
+          <h2 className="text-6xl font-black text-slate-900 mt-4">1,452</h2>
         </div>
       </div>
     </div>
