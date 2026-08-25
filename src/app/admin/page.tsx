@@ -1,34 +1,33 @@
 import { db } from "@/db";
+import { products, categories, banners, settings, clickLogs, users } from "@/db/schema";
 import AdminUI from "./AdminUI";
-import { getSettings, getClickStats } from "./actions";
+import { desc } from "drizzle-orm";
 
-// ✅ Important: prevent prerender at build time
-export const dynamic = "force-dynamic";
-export const revalidate = 0;
+export default async function AdminPage() {
+  // Fetching all data for Admin UI
+  const [allProducts, allCats, allBanners, allSettings, allClicks, allUsers] = await Promise.all([
+    db.query.products.findMany({ with: { category: true }, orderBy: [desc(products.createdAt)] }),
+    db.query.categories.findMany(),
+    db.query.banners.findMany(),
+    db.query.settings.findMany(),
+    db.query.clickLogs.findMany({ with: { product: true }, orderBy: [desc(clickLogs.clickedAt)], limit: 50 }),
+    db.query.users.findMany()
+  ]);
 
-// ✅ Ensure it runs on Node.js runtime (needed for DB drivers)
-export const runtime = "nodejs";
-
-export default async function AdminDashboard() {
-  const [allProducts, allCategories, allBanners, settings, clickStats] =
-    await Promise.all([
-      db.query.products.findMany({
-        with: { category: true },
-        orderBy: (products, { desc }) => [desc(products.id)],
-      }),
-      db.query.categories.findMany(),
-      db.query.banners.findMany(),
-      getSettings(),
-      getClickStats(),
-    ]);
+  // Convert settings array to object
+  const settingsObj = allSettings.reduce((acc: any, curr) => {
+    acc[curr.key] = curr.value;
+    return acc;
+  }, {});
 
   return (
-    <AdminUI
-      products={allProducts}
-      categories={allCategories}
-      banners={allBanners}
-      initialSettings={settings}
-      clickStats={clickStats}
+    <AdminUI 
+      products={allProducts} 
+      categories={allCats} 
+      banners={allBanners} 
+      initialSettings={settingsObj} 
+      clickStats={allClicks}
+      users={allUsers} // Requirement 7
     />
   );
 }
