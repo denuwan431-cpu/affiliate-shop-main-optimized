@@ -11,7 +11,7 @@ export const categories = pgTable('categories', {
   order: integer('order').default(0),
 });
 
-// 2. Products Table (Fixed: brand and updatedAt added)
+// 2. Products Table (සියලුම පිටු වලට අවශ්‍ය fields ඇතුළත් කර ඇත)
 export const products = pgTable('products', {
   id: serial('id').primaryKey(),
   name: varchar('name', { length: 255 }).notNull(),
@@ -25,11 +25,13 @@ export const products = pgTable('products', {
   brand: varchar('brand', { length: 100 }),
   rating: decimal('rating', { precision: 2, scale: 1 }).default('5.0'),
   affiliateUrl: text('affiliate_url').notNull(),
+  isFlashSale: boolean('is_flash_sale').default(false), // Search page එකට අවශ්‍ය වේ
   isHot: boolean('is_hot').default(false),
   isFeatured: boolean('is_featured').default(false),
   isNew: boolean('is_new').default(false),
+  stockStatus: varchar('stock_status', { length: 50 }).default('in_stock'),
   createdAt: timestamp('created_at').defaultNow(),
-  updatedAt: timestamp('updated_at').defaultNow(), // මෙම පේළිය අත්‍යවශ්‍ය වේ
+  updatedAt: timestamp('updated_at').defaultNow(),
 });
 
 // 3. Banners Table
