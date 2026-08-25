@@ -6,16 +6,11 @@
   --foreground-rgb: 15, 23, 42;
 }
 
-body {
-  color: rgb(var(--foreground-rgb));
-  overflow-x: hidden;
-}
-
 /* Premium Animated Background */
 .animated-bg {
-  background: linear-gradient(-45deg, #f8fafc, #f1f5f9, #fff7ed, #fafafa);
+  background: linear-gradient(-45deg, #ffffff, #f8fafc, #fff7ed, #f1f5f9);
   background-size: 400% 400%;
-  animation: gradientBG 15s ease infinite;
+  animation: gradientBG 18s ease infinite;
 }
 
 @keyframes gradientBG {
@@ -24,10 +19,26 @@ body {
   100% { background-position: 0% 50%; }
 }
 
+body {
+  color: rgb(var(--foreground-rgb));
+  min-height: 100vh;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #f8fafc;
+}
+::-webkit-scrollbar-thumb {
+  background: #e2e8f0;
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #f97316;
+}
+
 .no-scrollbar::-webkit-scrollbar {
   display: none;
-}
-.no-scrollbar {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
 }
