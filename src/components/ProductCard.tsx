@@ -1,62 +1,61 @@
+"use client";
 import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Star } from 'lucide-react';
+import { Star, ExternalLink, Flame } from 'lucide-react';
+import { logAffiliateClick } from '@/app/admin/actions';
 
-interface ProductCardProps {
-  product: {
-    id: number;
-    name: string;
-    price: string | number;
-    originalPrice?: string | number | null;
-    discountPercent?: number | null;
-    imageUrls: string[];
-    rating: string | number | null;
-  };
-}
-
-export default function ProductCard({ product }: ProductCardProps) {
-  const price = typeof product.price === 'string' ? parseFloat(product.price) : product.price;
-  const originalPrice = product.originalPrice ? (typeof product.originalPrice === 'string' ? parseFloat(product.originalPrice) : product.originalPrice) : null;
+export default function ProductCard({ product }: { product: any }) {
+  const price = parseFloat(product.price);
+  const originalPrice = product.originalPrice ? parseFloat(product.originalPrice) : null;
+  const displayName = product.shortName || product.name; // Use shortName if exists
 
   return (
-    <Link href={`/product/${product.id}`} className="bg-white rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.05)] hover:shadow-[0_8px_30px_rgba(249,115,22,0.15)] transition-all duration-500 group overflow-hidden flex flex-col border border-gray-100/50">
-      <div className="relative aspect-square overflow-hidden bg-white">
-        <Image
-          src={product.imageUrls[0]}
-          alt={product.name}
-          fill
-          sizes="(max-width: 768px) 45vw, (max-width: 1024px) 22vw, 15vw"
-          className="object-contain p-4 group-hover:scale-110 transition-transform duration-700"
-          loading="lazy"
-        />
+    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 hover:shadow-xl transition-all duration-300 flex flex-col h-full relative overflow-hidden group">
+      <div className="absolute top-2 left-2 z-10 flex flex-col gap-1">
         {product.discountPercent && (
-          <div className="absolute top-4 left-4 bg-orange-600 text-white text-[10px] font-black px-2 py-1 rounded-lg z-10 shadow-lg shadow-orange-200">
-            -{product.discountPercent}% OFF
-          </div>
+          <span className="bg-red-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-md">-{product.discountPercent}% OFF</span>
+        )}
+        {product.isHot && (
+          <span className="bg-orange-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-md flex items-center gap-1"><Flame size={10} /> HOT</span>
         )}
       </div>
-      <div className="p-4 flex flex-col flex-1 bg-gradient-to-b from-transparent to-gray-50/50">
-        <h3 className="text-[13px] font-semibold text-gray-700 line-clamp-2 mb-2 group-hover:text-orange-600 transition-colors leading-snug h-9">
-          {product.name}
+      
+      <Link href={`/product/${product.id}`} className="block relative aspect-square bg-white p-4 overflow-hidden">
+        <Image src={product.imageUrls[0]} alt={displayName} fill className="object-contain p-4 group-hover:scale-110 transition-transform duration-500" />
+      </Link>
+
+      <div className="p-4 flex flex-col flex-1 bg-gradient-to-b from-transparent to-gray-50/30">
+        <h3 className="text-[13px] font-bold text-gray-800 line-clamp-2 mb-2 h-9 leading-snug group-hover:text-blue-600 transition-colors">
+          {displayName}
         </h3>
-        <div className="mt-auto space-y-1">
-          <div className="flex items-baseline gap-1.5">
-            <span className="text-orange-600 font-black text-lg">
-              Rs. {price.toLocaleString()}
-            </span>
+        
+        <div className="mt-auto space-y-3">
+          <div className="flex flex-col">
+            <span className="text-lg font-black text-blue-600">Rs. {price.toLocaleString()}</span>
+            {originalPrice && originalPrice > price && (
+              <span className="text-[11px] text-gray-400 line-through">Rs. {originalPrice.toLocaleString()}</span>
+            )}
           </div>
+
           <div className="flex items-center justify-between">
-            {originalPrice && originalPrice > price ? (
-              <span className="text-[11px] text-gray-400 line-through decoration-red-400/50">Rs. {originalPrice.toLocaleString()}</span>
-            ) : <div />}
-            <div className="flex items-center gap-1 text-[10px] bg-yellow-100/50 px-1.5 py-0.5 rounded-md">
+            <div className="flex items-center gap-1 bg-yellow-100 px-2 py-0.5 rounded text-yellow-700 text-[10px] font-bold">
               <Star size={10} className="fill-yellow-500 text-yellow-500" />
-              <span className="text-yellow-700 font-bold">{product.rating}</span>
+              {product.rating || '0.0'}
             </div>
           </div>
+
+          <a
+            href={product.affiliateUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={() => logAffiliateClick(product.id)}
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold py-2.5 rounded-xl flex items-center justify-center gap-2 transition-all active:scale-95 shadow-md"
+          >
+            View Deal <ExternalLink size={14} />
+          </a>
         </div>
       </div>
-    </Link>
+    </div>
   );
 }
