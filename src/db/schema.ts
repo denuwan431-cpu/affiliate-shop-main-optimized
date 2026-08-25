@@ -1,7 +1,6 @@
 import { pgTable, serial, text, varchar, timestamp, decimal, boolean, integer, jsonb, index } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 
-// 1. Categories Table
 export const categories = pgTable('categories', {
   id: serial('id').primaryKey(),
   name: varchar('name', { length: 100 }).notNull(),
@@ -11,7 +10,6 @@ export const categories = pgTable('categories', {
   order: integer('order').default(0),
 });
 
-// 2. Products Table (සියලුම පිටු වලට අවශ්‍ය fields ඇතුළත් කර ඇත)
 export const products = pgTable('products', {
   id: serial('id').primaryKey(),
   name: varchar('name', { length: 255 }).notNull(),
@@ -25,16 +23,15 @@ export const products = pgTable('products', {
   brand: varchar('brand', { length: 100 }),
   rating: decimal('rating', { precision: 2, scale: 1 }).default('5.0'),
   affiliateUrl: text('affiliate_url').notNull(),
-  isFlashSale: boolean('is_flash_sale').default(false), // Search page එකට අවශ්‍ය වේ
   isHot: boolean('is_hot').default(false),
   isFeatured: boolean('is_featured').default(false),
+  isFlashSale: boolean('is_flash_sale').default(false),
   isNew: boolean('is_new').default(false),
   stockStatus: varchar('stock_status', { length: 50 }).default('in_stock'),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
 });
 
-// 3. Banners Table
 export const banners = pgTable('banners', {
   id: serial('id').primaryKey(),
   imageUrl: text('image_url').notNull(),
@@ -46,7 +43,6 @@ export const banners = pgTable('banners', {
   order: integer('order').default(0),
 });
 
-// 4. Users Table
 export const users = pgTable('users', {
   id: serial('id').primaryKey(),
   email: varchar('email', { length: 255 }).unique().notNull(),
@@ -54,7 +50,6 @@ export const users = pgTable('users', {
   createdAt: timestamp('created_at').defaultNow(),
 });
 
-// 5. Click Logs Table
 export const clickLogs = pgTable('click_logs', {
   id: serial('id').primaryKey(),
   productId: integer('product_id').references(() => products.id, { onDelete: 'cascade' }),
@@ -63,19 +58,27 @@ export const clickLogs = pgTable('click_logs', {
   ip: varchar('ip', { length: 45 }),
 });
 
-// 6. Settings Table
 export const settings = pgTable('settings', {
   id: serial('id').primaryKey(),
   key: varchar('key', { length: 100 }).unique().notNull(),
   value: text('value').notNull(),
 });
 
-// --- Relations ---
-export const categoriesRelations = relations(categories, ({ many }) => ({ products: many(products) }));
-export const productsRelations = relations(products, ({ one, many }) => ({ 
-  category: one(categories, { fields: [products.categoryId], references: [categories.id] }),
-  clicks: many(clickLogs)
+export const categoriesRelations = relations(categories, ({ many }) => ({
+  products: many(products),
 }));
+
+export const productsRelations = relations(products, ({ one, many }) => ({
+  category: one(categories, {
+    fields: [products.categoryId],
+    references: [categories.id],
+  }),
+  clicks: many(clickLogs),
+}));
+
 export const clickLogsRelations = relations(clickLogs, ({ one }) => ({
-  product: one(products, { fields: [clickLogs.productId], references: [products.id] }),
+  product: one(products, {
+    fields: [clickLogs.productId],
+    references: [products.id],
+  }),
 }));
