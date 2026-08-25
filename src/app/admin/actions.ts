@@ -29,34 +29,59 @@ export async function logout() {
   cookieStore.delete("admin_session");
 }
 
-// Actions
+// --- CATEGORIES (Fixing the Export Error) ---
+export async function upsertCategory(data: any) {
+  const slug = data.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+  if (data.id) {
+    await db.update(categories).set({ ...data, slug }).where(eq(categories.id, data.id));
+  } else {
+    await db.insert(categories).values({ ...data, slug });
+  }
+  revalidatePath("/");
+  revalidatePath("/admin");
+}
+
+export async function addCategory(data: any) { return upsertCategory(data); }
+
+export async function deleteCategory(id: number) {
+  await db.delete(categories).where(eq(categories.id, id));
+  revalidatePath("/");
+  revalidatePath("/admin");
+}
+
+// --- BANNERS (Fixing the Export Error) ---
+export async function upsertBanner(data: any) {
+  if (data.id) {
+    await db.update(banners).set(data).where(eq(banners.id, data.id));
+  } else {
+    await db.insert(banners).values(data);
+  }
+  revalidatePath("/");
+  revalidatePath("/admin");
+}
+
+export async function addBanner(data: any) { return upsertBanner(data); }
+
+export async function deleteBanner(id: number) {
+  await db.delete(banners).where(eq(banners.id, id));
+  revalidatePath("/");
+  revalidatePath("/admin");
+}
+
+// --- PRODUCTS ---
 export async function addProduct(data: any) { await db.insert(products).values(data); revalidatePath("/"); revalidatePath("/admin"); }
 export async function updateProduct(id: number, data: any) { await db.update(products).set(data).where(eq(products.id, id)); revalidatePath("/"); revalidatePath("/admin"); }
 export async function deleteProduct(id: number) { await db.delete(products).where(eq(products.id, id)); revalidatePath("/"); revalidatePath("/admin"); }
 
-export async function addCategory(data: any) {
-  const slug = data.name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
-  await db.insert(categories).values({ ...data, slug });
-  revalidatePath("/"); revalidatePath("/admin");
-}
-export async function deleteCategory(id: number) { await db.delete(categories).where(eq(categories.id, id)); revalidatePath("/"); }
-
-export async function addBanner(data: any) {
-  await db.insert(banners).values({
-    title: data.title,
-    subtitle: data.subtitle,
-    imageUrl: data.imageUrl,
-    buttonText: data.buttonText,
-    buttonUrl: data.buttonUrl,
-    isEnabled: true
-  });
-  revalidatePath("/");
-  revalidatePath("/admin");
-}
-export async function deleteBanner(id: number) { await db.delete(banners).where(eq(banners.id, id)); revalidatePath("/"); revalidatePath("/admin"); }
-
+// --- USERS ---
 export async function deleteUser(id: number) { await db.delete(users).where(eq(users.id, id)); revalidatePath("/admin"); }
 export async function clearAllUsers() { await db.delete(users); revalidatePath("/admin"); }
+
+// --- SETTINGS & ANALYTICS ---
+export async function updateSetting(key: string, value: string) {
+  await db.insert(settings).values({ key, value }).onConflictDoUpdate({ target: settings.key, set: { value } });
+  revalidatePath("/");
+}
 
 export async function logAffiliateClick(productId: number) { await db.insert(clickLogs).values({ productId }); }
 export async function clearAnalytics(period: string) {
@@ -67,9 +92,4 @@ export async function clearAnalytics(period: string) {
     await db.delete(clickLogs).where(gte(clickLogs.clickedAt, cutoff));
   }
   revalidatePath("/admin");
-}
-
-export async function updateSetting(key: string, value: string) {
-  await db.insert(settings).values({ key, value }).onConflictDoUpdate({ target: settings.key, set: { value } });
-  revalidatePath("/");
 }
