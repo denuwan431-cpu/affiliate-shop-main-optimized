@@ -1,66 +1,382 @@
 "use client";
-import React, { useState, useEffect } from 'react';
 
-export default function HeroSlider({ banners }: { banners: any[] }) {
+import React, {
+  useEffect,
+  useState,
+} from "react";
+
+import Image from "next/image";
+
+
+interface Banner {
+  id: number;
+  imageUrl: string;
+  title?: string | null;
+  subtitle?: string | null;
+}
+
+
+interface HeroSliderProps {
+  banners: Banner[];
+}
+
+
+export default function HeroSlider({
+  banners,
+}: HeroSliderProps) {
+
   const [current, setCurrent] = useState(0);
 
+
+  /* =========================================================
+     AUTO SLIDE
+     ========================================================= */
+
   useEffect(() => {
-    if (banners.length <= 1) return;
-    const itv = setInterval(() => setCurrent(p => (p + 1) % banners.length), 6000);
-    return () => clearInterval(itv);
+
+    if (banners.length <= 1) {
+      return;
+    }
+
+
+    const interval = window.setInterval(() => {
+
+      setCurrent((previous) => {
+
+        return (previous + 1) % banners.length;
+
+      });
+
+    }, 6000);
+
+
+    return () => {
+      window.clearInterval(interval);
+    };
+
   }, [banners.length]);
 
-  if (!banners.length) return null;
+
+  /* =========================================================
+     EMPTY BANNER
+     ========================================================= */
+
+  if (!banners || banners.length === 0) {
+
+    return (
+      <section
+        className="
+          relative
+          mb-10
+          flex
+          h-[260px]
+          w-full
+          items-center
+          justify-center
+          overflow-hidden
+          bg-gradient-to-br
+          from-orange-50
+          via-white
+          to-slate-100
+          md:h-[500px]
+        "
+      >
+
+        <div className="text-center">
+
+          <h1
+            className="
+              text-3xl
+              font-black
+              tracking-tight
+              text-slate-800
+              md:text-6xl
+            "
+          >
+            AFFILIATE
+            <span className="text-orange-500">
+              SHOP.LK
+            </span>
+          </h1>
+
+          <p className="mt-3 text-sm text-slate-500 md:text-base">
+            Best Deals in Sri Lanka
+          </p>
+
+        </div>
+
+      </section>
+    );
+  }
+
+
+  /* =========================================================
+     CURRENT BANNER
+     ========================================================= */
+
+  const banner = banners[current] || banners[0];
+
 
   return (
-    <section className="relative h-[400px] md:h-[550px] w-full bg-slate-100 overflow-hidden mb-12">
-      {banners.map((b, i) => (
-        <div 
-          key={b.id} 
-          className={`absolute inset-0 transition-all duration-1000 ease-in-out ${
-            i === current ? 'opacity-100 scale-100' : 'opacity-0 scale-105 pointer-events-none'
-          }`}
+    <section
+      className="
+        relative
+        mb-12
+        h-[280px]
+        w-full
+        overflow-hidden
+        bg-slate-100
+        shadow-sm
+        md:h-[500px]
+      "
+    >
+
+      {/* =====================================================
+          IMAGE
+          ===================================================== */}
+
+      {banners.map((item, index) => (
+
+        <div
+          key={item.id}
+          className={`
+            absolute
+            inset-0
+            transition-all
+            duration-1000
+            ease-in-out
+
+            ${
+              index === current
+                ? "scale-100 opacity-100"
+                : "pointer-events-none scale-105 opacity-0"
+            }
+          `}
         >
-          {/* Banner Image */}
-          <img src={b.imageUrl} className="absolute inset-0 w-full h-full object-cover" alt={b.title || "Banner"} />
-          
-          {/* Overlay Gradient - පේන්නේ Text එකක් තිබුණොත් පමණයි */}
-          {(b.title || b.subtitle) && (
-            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+
+          <Image
+            src={item.imageUrl}
+            alt={
+              item.title ||
+              "AffiliateShop banner"
+            }
+            fill
+            priority={index === 0}
+            sizes="100vw"
+            className="object-cover"
+          />
+
+
+          {/* =================================================
+              DARK OVERLAY
+              ================================================= */}
+
+          {(item.title || item.subtitle) && (
+
+            <div
+              className="
+                absolute
+                inset-0
+                bg-gradient-to-t
+                from-black/70
+                via-black/20
+                to-transparent
+              "
+            />
+
           )}
 
-          {/* Text Content - තිබුණොත් පමණක් පෙන්වයි */}
-          {(b.title || b.subtitle) && (
-            <div className="relative z-10 flex flex-col items-center justify-end h-full text-white text-center pb-20 px-6 max-w-5xl mx-auto">
-              {b.title && (
-                <h1 className="text-3xl md:text-6xl font-black mb-4 uppercase tracking-tighter drop-shadow-lg">
-                  {b.title}
+
+          {/* =================================================
+              TEXT
+              ================================================= */}
+
+          {(item.title || item.subtitle) && (
+
+            <div
+              className="
+                absolute
+                inset-x-0
+                bottom-0
+                z-10
+                mx-auto
+                flex
+                max-w-5xl
+                flex-col
+                items-center
+                px-6
+                pb-16
+                text-center
+                text-white
+                md:pb-20
+              "
+            >
+
+              {item.title && (
+
+                <h1
+                  className="
+                    mb-3
+                    text-3xl
+                    font-black
+                    uppercase
+                    tracking-tight
+                    drop-shadow-lg
+                    md:text-6xl
+                  "
+                >
+                  {item.title}
                 </h1>
+
               )}
-              {b.subtitle && (
-                <p className="text-sm md:text-xl opacity-90 font-medium max-w-2xl drop-shadow-md">
-                  {b.subtitle}
+
+
+              {item.subtitle && (
+
+                <p
+                  className="
+                    max-w-2xl
+                    text-sm
+                    font-medium
+                    opacity-95
+                    drop-shadow-md
+                    md:text-xl
+                  "
+                >
+                  {item.subtitle}
                 </p>
+
               )}
+
             </div>
+
           )}
+
         </div>
+
       ))}
 
-      {/* Navigation Dots */}
+
+      {/* =====================================================
+          NAVIGATION BUTTONS
+          ===================================================== */}
+
       {banners.length > 1 && (
-        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 flex gap-2">
-          {banners.map((_, i) => (
-            <button 
-              key={i} 
-              onClick={() => setCurrent(i)} 
-              className={`h-1.5 rounded-full transition-all duration-500 ${
-                i === current ? 'bg-orange-500 w-8' : 'bg-white/50 w-2'
-              }`} 
-            />
-          ))}
-        </div>
+
+        <>
+
+          <button
+            type="button"
+            onClick={() =>
+              setCurrent(
+                (current - 1 + banners.length) %
+                banners.length
+              )
+            }
+            aria-label="Previous banner"
+            className="
+              absolute
+              left-3
+              top-1/2
+              z-20
+              -translate-y-1/2
+              rounded-full
+              bg-black/30
+              px-4
+              py-3
+              text-xl
+              text-white
+              backdrop-blur-sm
+              transition
+              hover:bg-black/50
+              md:left-6
+            "
+          >
+            ‹
+          </button>
+
+
+          <button
+            type="button"
+            onClick={() =>
+              setCurrent(
+                (current + 1) %
+                banners.length
+              )
+            }
+            aria-label="Next banner"
+            className="
+              absolute
+              right-3
+              top-1/2
+              z-20
+              -translate-y-1/2
+              rounded-full
+              bg-black/30
+              px-4
+              py-3
+              text-xl
+              text-white
+              backdrop-blur-sm
+              transition
+              hover:bg-black/50
+              md:right-6
+            "
+          >
+            ›
+          </button>
+
+        </>
+
       )}
+
+
+      {/* =====================================================
+          DOTS
+          ===================================================== */}
+
+      {banners.length > 1 && (
+
+        <div
+          className="
+            absolute
+            bottom-5
+            left-1/2
+            z-30
+            flex
+            -translate-x-1/2
+            items-center
+            gap-2
+          "
+        >
+
+          {banners.map((item, index) => (
+
+            <button
+              key={item.id}
+              type="button"
+              onClick={() => setCurrent(index)}
+              aria-label={`Go to banner ${index + 1}`}
+              className={`
+                h-2
+                rounded-full
+                transition-all
+                duration-500
+
+                ${
+                  index === current
+                    ? "w-8 bg-orange-500"
+                    : "w-2 bg-white/70 hover:bg-white"
+                }
+              `}
+            />
+
+          ))}
+
+        </div>
+
+      )}
+
     </section>
   );
 }
