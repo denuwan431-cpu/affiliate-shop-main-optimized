@@ -2,57 +2,57 @@
 import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Star, ExternalLink, Flame } from 'lucide-react';
+import { Star, ArrowUpRight, Flame } from 'lucide-react';
 import { logAffiliateClick } from '@/app/admin/actions';
 
 export default function ProductCard({ product }: { product: any }) {
   const price = parseFloat(product.price);
   const originalPrice = product.originalPrice ? parseFloat(product.originalPrice) : null;
-  const displayName = product.shortName || product.name; // Use shortName if exists
+  const displayName = product.shortName || product.name;
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 hover:shadow-xl transition-all duration-300 flex flex-col h-full relative overflow-hidden group">
-      <div className="absolute top-2 left-2 z-10 flex flex-col gap-1">
+    <div className="bg-white rounded-[32px] border border-gray-100 hover:border-orange-200/50 hover:shadow-[0_20px_50px_rgba(0,0,0,0.04)] transition-all duration-500 flex flex-col h-full relative group">
+      {/* Labels */}
+      <div className="absolute top-4 left-4 z-10 flex flex-col gap-2">
         {product.discountPercent && (
-          <span className="bg-red-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-md">-{product.discountPercent}% OFF</span>
+          <div className="bg-red-600 text-white text-[10px] font-black px-3 py-1.5 rounded-full shadow-lg">-{product.discountPercent}%</div>
         )}
         {product.isHot && (
-          <span className="bg-orange-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-md flex items-center gap-1"><Flame size={10} /> HOT</span>
+          <div className="bg-orange-500 text-white text-[10px] font-black px-3 py-1.5 rounded-full shadow-lg flex items-center gap-1"><Flame size={12} /> HOT</div>
         )}
       </div>
-      
-      <Link href={`/product/${product.id}`} className="block relative aspect-square bg-white p-4 overflow-hidden">
-        <Image src={product.imageUrls[0]} alt={displayName} fill className="object-contain p-4 group-hover:scale-110 transition-transform duration-500" />
+
+      <Link href={`/product/${product.id}`} className="block relative aspect-square bg-gray-50/30 m-3 rounded-[24px] overflow-hidden">
+        <Image src={product.imageUrls[0]} alt={displayName} fill className="object-contain p-6 group-hover:scale-110 transition-transform duration-700" />
       </Link>
 
-      <div className="p-4 flex flex-col flex-1 bg-gradient-to-b from-transparent to-gray-50/30">
-        <h3 className="text-[13px] font-bold text-gray-800 line-clamp-2 mb-2 h-9 leading-snug group-hover:text-blue-600 transition-colors">
-          {displayName}
-        </h3>
+      <div className="p-6 pt-2 flex flex-col flex-1">
+        <div className="flex items-center gap-1 mb-2">
+            <Star size={12} className="fill-yellow-400 text-yellow-400" />
+            <span className="text-[11px] font-black text-gray-400">{product.rating || '5.0'}</span>
+        </div>
         
-        <div className="mt-auto space-y-3">
-          <div className="flex flex-col">
-            <span className="text-lg font-black text-blue-600">Rs. {price.toLocaleString()}</span>
-            {originalPrice && originalPrice > price && (
-              <span className="text-[11px] text-gray-400 line-through">Rs. {originalPrice.toLocaleString()}</span>
-            )}
-          </div>
+        <Link href={`/product/${product.id}`}>
+          <h3 className="text-[15px] font-bold text-gray-800 line-clamp-2 h-11 leading-snug group-hover:text-orange-600 transition-colors">
+            {displayName}
+          </h3>
+        </Link>
 
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-1 bg-yellow-100 px-2 py-0.5 rounded text-yellow-700 text-[10px] font-bold">
-              <Star size={10} className="fill-yellow-500 text-yellow-500" />
-              {product.rating || '0.0'}
-            </div>
+        <div className="mt-auto space-y-5">
+          <div className="flex flex-col">
+            <span className="text-2xl font-black text-gray-900 tracking-tighter">Rs. {price.toLocaleString()}</span>
+            {originalPrice && originalPrice > price && (
+              <span className="text-xs text-gray-400 line-through font-medium">Rs. {originalPrice.toLocaleString()}</span>
+            )}
           </div>
 
           <a
             href={product.affiliateUrl}
             target="_blank"
-            rel="noopener noreferrer"
             onClick={() => logAffiliateClick(product.id)}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold py-2.5 rounded-xl flex items-center justify-center gap-2 transition-all active:scale-95 shadow-md"
+            className="w-full bg-gray-900 hover:bg-orange-600 text-white text-xs font-black py-4 rounded-2xl flex items-center justify-center gap-2 transition-all active:scale-95 uppercase tracking-widest shadow-xl shadow-gray-100 hover:shadow-orange-100"
           >
-            View Deal <ExternalLink size={14} />
+            View Deal <ArrowUpRight size={16} />
           </a>
         </div>
       </div>
