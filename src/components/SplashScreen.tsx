@@ -15,24 +15,13 @@ export default function SplashScreen() {
       {loading && (
         <motion.div
           initial={{ opacity: 1 }}
-          exit={{ opacity: 0, transition: { duration: 0.8 } }}
-          className="fixed inset-0 z-[9999] bg-[#0f172a] flex items-center justify-center"
+          exit={{ opacity: 0 }}
+          style={{ position: 'fixed', inset: 0, zIndex: 9999, backgroundColor: '#0f172a', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
         >
-          <div className="text-center">
-            <motion.h1 
-              initial={{ y: 20, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ duration: 0.8, ease: "easeOut" }}
-              className="text-4xl md:text-7xl font-[1000] text-white tracking-tighter uppercase italic"
-            >
-              AFFILIATE<span className="text-orange-600">SHOP.LK</span>
-            </motion.h1>
-            <motion.div 
-              initial={{ width: 0 }}
-              animate={{ width: "100%" }}
-              transition={{ delay: 0.4, duration: 0.8 }}
-              className="h-1 bg-orange-600 mt-4 rounded-full mx-auto"
-            />
+          <div style={{ textAlign: 'center' }}>
+            <h1 style={{ fontSize: '3rem', fontWeight: '900', color: 'white', fontStyle: 'italic' }}>
+              AFFILIATE<span style={{ color: '#ea580c' }}>SHOP.LK</span>
+            </h1>
           </div>
         </motion.div>
       )}
