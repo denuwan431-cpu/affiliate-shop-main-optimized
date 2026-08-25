@@ -17,11 +17,9 @@ export default function ProductForm({ categories, initialData }: { categories: a
     categoryId: initialData?.categoryId || categories[0]?.id,
     brand: initialData?.brand || '',
     affiliateUrl: initialData?.affiliateUrl || '',
-    isFlashSale: initialData?.isFlashSale || false,
-    isHot: initialData?.isHot || false,
     isFeatured: initialData?.isFeatured || false,
-    isNew: initialData?.isNew || false,
-    rating: initialData?.rating || '4.5',
+    isHot: initialData?.isHot || false,
+    rating: initialData?.rating || '5.0',
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -43,55 +41,55 @@ export default function ProductForm({ categories, initialData }: { categories: a
   };
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white p-8 rounded-3xl shadow-sm border border-gray-100 max-w-2xl mx-auto space-y-6">
-      <h2 className="text-2xl font-black text-gray-800">{initialData ? 'Edit Product' : 'Add New Product'}</h2>
+    <form onSubmit={handleSubmit} className="bg-white p-10 rounded-[40px] shadow-sm border border-slate-100 max-w-2xl mx-auto space-y-6">
+      <h2 className="text-2xl font-black text-slate-800">{initialData ? 'Update Product' : 'Add New Product'}</h2>
       
       <div className="space-y-2">
-        <label className="text-sm font-bold text-gray-700">Original Full Name</label>
-        <input required className="w-full p-3 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-orange-500" value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} />
+        <label className="text-[10px] font-black uppercase text-slate-400 ml-1">Full Product Name</label>
+        <input required className="w-full p-4 bg-slate-50 rounded-2xl outline-none border-none font-bold" value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} />
       </div>
 
       <div className="space-y-2">
-        <label className="text-sm font-bold text-gray-700">Short Display Name (Recommended)</label>
-        <input className="w-full p-3 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-orange-500" value={formData.shortName} onChange={(e) => setFormData({...formData, shortName: e.target.value})} placeholder="e.g. iPhone 15 Pro Max" />
+        <label className="text-[10px] font-black uppercase text-slate-400 ml-1">Short Name (For Card Display)</label>
+        <input className="w-full p-4 bg-slate-50 rounded-2xl outline-none border-none font-bold" value={formData.shortName} onChange={(e) => setFormData({...formData, shortName: e.target.value})} placeholder="e.g. iPhone 15 Pro" />
       </div>
 
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
-          <label className="text-sm font-bold text-gray-700">Price (Rs.)</label>
-          <input required type="number" className="w-full p-3 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-orange-500" value={formData.price} onChange={(e) => setFormData({...formData, price: e.target.value})} />
+          <label className="text-[10px] font-black uppercase text-slate-400 ml-1">Price (Rs.)</label>
+          <input required type="number" className="w-full p-4 bg-slate-50 rounded-2xl outline-none" value={formData.price} onChange={(e) => setFormData({...formData, price: e.target.value})} />
         </div>
         <div className="space-y-2">
-          <label className="text-sm font-bold text-gray-700">Discount %</label>
-          <input type="number" className="w-full p-3 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-orange-500" value={formData.discountPercent} onChange={(e) => setFormData({...formData, discountPercent: parseInt(e.target.value)})} />
+          <label className="text-[10px] font-black uppercase text-slate-400 ml-1">Discount %</label>
+          <input type="number" className="w-full p-4 bg-slate-50 rounded-2xl outline-none" value={formData.discountPercent} onChange={(e) => setFormData({...formData, discountPercent: parseInt(e.target.value)})} />
         </div>
       </div>
 
-      <div className="space-y-2 text-sm font-bold text-gray-700 uppercase tracking-tighter">Product Status Tags</div>
-      <div className="flex flex-wrap gap-4 p-4 bg-gray-50 rounded-2xl border border-gray-100">
-        <label className="flex items-center gap-2 cursor-pointer"><input type="checkbox" checked={formData.isFeatured} onChange={(e) => setFormData({...formData, isFeatured: e.target.checked})} /> Featured</label>
-        <label className="flex items-center gap-2 cursor-pointer"><input type="checkbox" checked={formData.isHot} onChange={(e) => setFormData({...formData, isHot: e.target.checked})} /> 🔥 Hot Deal</label>
-        <label className="flex items-center gap-2 cursor-pointer"><input type="checkbox" checked={formData.isNew} onChange={(e) => setFormData({...formData, isNew: e.target.checked})} /> New Arrival</label>
+      <div className="flex gap-6 p-4 bg-slate-50 rounded-2xl">
+         <label className="flex items-center gap-2 font-bold text-xs uppercase cursor-pointer"><input type="checkbox" checked={formData.isFeatured} onChange={(e) => setFormData({...formData, isFeatured: e.target.checked})} className="w-4 h-4 accent-orange-600" /> Featured</label>
+         <label className="flex items-center gap-2 font-bold text-xs uppercase cursor-pointer"><input type="checkbox" checked={formData.isHot} onChange={(e) => setFormData({...formData, isHot: e.target.checked})} className="w-4 h-4 accent-orange-600" /> Hot Deal</label>
       </div>
 
       <div className="space-y-2">
-        <label className="text-sm font-bold text-gray-700">Category</label>
-        <select className="w-full p-3 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-orange-500" value={formData.categoryId} onChange={(e) => setFormData({...formData, categoryId: e.target.value})}>
+        <label className="text-[10px] font-black uppercase text-slate-400 ml-1">Category</label>
+        <select className="w-full p-4 bg-slate-50 rounded-2xl outline-none border-none font-bold" value={formData.categoryId} onChange={(e) => setFormData({...formData, categoryId: e.target.value})}>
           {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
         </select>
       </div>
 
       <div className="space-y-2">
-        <label className="text-sm font-bold text-gray-700">Affiliate / Daraz URL</label>
-        <input required className="w-full p-3 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-orange-500" value={formData.affiliateUrl} onChange={(e) => setFormData({...formData, affiliateUrl: e.target.value})} />
+        <label className="text-[10px] font-black uppercase text-slate-400 ml-1">Affiliate Link</label>
+        <input required className="w-full p-4 bg-slate-50 rounded-2xl outline-none" value={formData.affiliateUrl} onChange={(e) => setFormData({...formData, affiliateUrl: e.target.value})} />
       </div>
 
       <div className="space-y-2">
-        <label className="text-sm font-bold text-gray-700">Image URLs (Comma separated)</label>
-        <textarea required className="w-full p-3 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-orange-500 h-24" value={formData.imageUrls} onChange={(e) => setFormData({...formData, imageUrls: e.target.value})} />
+        <label className="text-[10px] font-black uppercase text-slate-400 ml-1">Image URL (Direct Link)</label>
+        <textarea required className="w-full p-4 bg-slate-50 rounded-2xl outline-none h-24 font-bold" value={formData.imageUrls} onChange={(e) => setFormData({...formData, imageUrls: e.target.value})} />
       </div>
 
-      <button type="submit" className="w-full bg-orange-600 text-white py-4 rounded-2xl font-bold shadow-xl transition hover:scale-[1.01]">Save Product</button>
+      <button type="submit" className="w-full bg-slate-900 hover:bg-orange-600 text-white py-5 rounded-[24px] font-[1000] uppercase tracking-widest shadow-xl transition-all hover:scale-[1.02]">
+        {initialData ? 'UPDATE PRODUCT' : 'ADD PRODUCT'}
+      </button>
     </form>
   );
 }
