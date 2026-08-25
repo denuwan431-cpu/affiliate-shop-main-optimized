@@ -35,13 +35,13 @@ export default async function HomePage({ searchParams }: any) {
   return (
     <main className="min-h-screen pb-20 overflow-hidden">
       {/* Hero Section */}
-      <div className="opacity-0 animate-[fadeIn_1s_ease-in_forwards]">
+      <div className="animate-fadeIn">
         <HeroSlider banners={heroBanners} />
       </div>
       
       <div className="max-w-7xl mx-auto px-4 md:px-8">
         {/* Filters and Grid Section */}
-        <div className="opacity-0 animate-[fadeIn_1s_ease-in_0.3s_forwards]">
+        <div className="animate-fadeIn [animation-delay:400ms] fill-mode-both">
           <HomeFilters categories={activeCats} />
           
           {all.length > 0 ? (
@@ -49,7 +49,7 @@ export default async function HomePage({ searchParams }: any) {
               {all.map(x => <ProductCard key={x.id} product={x} />)}
             </div>
           ) : (
-            <div className="py-20 text-center text-slate-400 font-bold uppercase tracking-widest">
+            <div className="py-20 text-center text-slate-400 font-bold uppercase tracking-widest animate-pulse">
               No products found
             </div>
           )}
