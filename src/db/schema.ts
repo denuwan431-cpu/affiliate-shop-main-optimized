@@ -11,7 +11,7 @@ export const categories = pgTable('categories', {
   order: integer('order').default(0),
 });
 
-// 2. Products Table
+// 2. Products Table (Fixed: brand and updatedAt added)
 export const products = pgTable('products', {
   id: serial('id').primaryKey(),
   name: varchar('name', { length: 255 }).notNull(),
@@ -22,13 +22,14 @@ export const products = pgTable('products', {
   discountPercent: integer('discount_percent'),
   imageUrls: jsonb('image_urls').$type<string[]>().notNull(),
   categoryId: integer('category_id').references(() => categories.id, { onDelete: 'set null' }),
-  brand: varchar('brand', { length: 100 }), // නැවත එකතු කරන ලදී
+  brand: varchar('brand', { length: 100 }),
   rating: decimal('rating', { precision: 2, scale: 1 }).default('5.0'),
   affiliateUrl: text('affiliate_url').notNull(),
   isHot: boolean('is_hot').default(false),
   isFeatured: boolean('is_featured').default(false),
   isNew: boolean('is_new').default(false),
   createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(), // මෙම පේළිය අත්‍යවශ්‍ය වේ
 });
 
 // 3. Banners Table
